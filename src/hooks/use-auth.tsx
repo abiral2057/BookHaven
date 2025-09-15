@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
@@ -15,7 +15,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// In a real app, this should be managed in a database or with custom claims.
 const ADMIN_UID = process.env.NEXT_PUBLIC_ADMIN_UID;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -23,20 +22,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
+    if (!ADMIN_UID) {
+      console.warn("NEXT_PUBLIC_ADMIN_UID is not set in your environment variables. Admin access will be disabled.");
+    }
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setLoading(true);
       setUser(user);
       
-      if(user) {
-        // This is a simplified check. For production, use Firestore-backed roles or custom claims.
-        if (ADMIN_UID && user.uid === ADMIN_UID) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
+      if(user && ADMIN_UID) {
+        setIsAdmin(user.uid === ADMIN_UID);
       } else {
         setIsAdmin(false);
       }
@@ -51,10 +47,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // Let the onAuthStateChanged listener handle redirection and state updates
+      // The onAuthStateChanged listener will handle state updates.
     } catch (error) {
       console.error("Error signing in with Google: ", error);
-      // Throw the error so the UI can catch it and display a toast
       throw error;
     }
   };
@@ -62,10 +57,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       await signOut(auth);
-      // Redirect to home page after logout, if on a protected route
-      if(pathname.startsWith('/admin') || pathname.startsWith('/dashboard')) {
-          router.push('/');
-      }
+      // After logout, redirect to home.
+      router.push('/');
     } catch (error) {
       console.error("Error signing out: ", error);
     }

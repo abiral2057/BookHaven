@@ -25,14 +25,8 @@ export default function AdminLoginPage() {
     const [authAttempted, setAuthAttempted] = useState(false);
 
     useEffect(() => {
-        if (!loading && user) {
-            if (isAdmin) {
-                router.push('/admin/dashboard');
-            } else {
-                // User is logged in but not an admin.
-                // We show a message on this page.
-                setAuthAttempted(true);
-            }
+        if (!loading && user && isAdmin) {
+            router.push('/admin/dashboard');
         }
     }, [user, isAdmin, loading, router]);
     
@@ -41,10 +35,11 @@ export default function AdminLoginPage() {
     }
 
     const handleSignIn = async () => {
-        setAuthAttempted(false); // Reset on new sign-in attempt
+        setAuthAttempted(false);
         try {
             await signInWithGoogle();
-            // The useEffect will handle redirection
+            setAuthAttempted(true);
+            // The useEffect will handle redirection if successful
         } catch (error) {
              toast({
                 variant: "destructive",
@@ -65,7 +60,7 @@ export default function AdminLoginPage() {
                     <CardDescription>Sign in to access the dashboard</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {authAttempted && !isAdmin && (
+                    {authAttempted && user && !isAdmin && (
                         <Alert variant="destructive" className="mb-4">
                             <ShieldAlert className="h-4 w-4" />
                             <AlertTitle>Access Denied</AlertTitle>

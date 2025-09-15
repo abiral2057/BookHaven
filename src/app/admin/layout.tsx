@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AdminLayout } from '@/components/admin/admin-layout';
 
@@ -10,19 +10,21 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
+        // Wait until loading is false before making any decisions
         if (!loading) {
             if (!user) {
-                // If not logged in, redirect to the home page to login
-                router.push('/');
+                // If there's no user, they should go to the admin login page.
+                router.push('/admin/login');
             } else if (!isAdmin) {
-                // If logged in but not an admin, redirect to customer dashboard
-                router.push('/dashboard');
+                // If there is a user, but they are NOT an admin,
+                // they should also be sent to the login page, which will show an error.
+                router.push('/admin/login');
             }
         }
     }, [user, isAdmin, loading, router]);
     
     // While loading, or if not an admin yet, show a loading spinner
-    if (loading || !isAdmin) {
+    if (loading || !isAdmin || !user) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
