@@ -111,19 +111,17 @@ export default function CategoriesPage() {
 
   const onSubmit = async (data: CategoryFormValues) => {
     try {
-      await addCategory(data);
+      const newCategoryId = await addCategory(data);
+      const newCategory = { id: newCategoryId, ...data, createdAt: new Date() } as Category;
+      
+      setCategories((prevCategories) => [...prevCategories, newCategory]);
+      
       toast({
         title: "Success",
         description: "Category added successfully.",
       });
       form.reset();
       setIsAdding(false);
-      
-      // Refetch after adding
-      setIsLoading(true);
-      const newCategories = await getCategories();
-      setCategories(newCategories);
-      setIsLoading(false);
 
     } catch (error) {
       toast({
@@ -256,5 +254,3 @@ export default function CategoriesPage() {
     </>
   );
 }
-
-    
