@@ -221,7 +221,7 @@ export default function ProductsPage() {
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
-                            </Trigger>
+                            </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {categories.map((category) => (
@@ -343,4 +343,5 @@ export default function ProductsPage() {
       )}
     </>
   );
-}
+
+    
