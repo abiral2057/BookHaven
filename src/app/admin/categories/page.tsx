@@ -33,6 +33,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { db } from "@/lib/firebase"; // Import db to check for initialization
 
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -65,12 +66,17 @@ export default function CategoriesPage() {
   const seeded = useRef(false);
 
   const fetchCategories = async () => {
+    // Prevent fetching if db is not ready
+    if (!db) {
+        return;
+    }
     try {
       setIsLoading(true);
       const fetchedCategories = await getCategories();
       
+      // Seed data only if the categories are empty and it hasn't been attempted before
       if (fetchedCategories.length === 0 && !seeded.current) {
-        seeded.current = true; // Prevents re-seeding
+        seeded.current = true; // Mark as attempted
         await Promise.all(defaultCategories.map(cat => addCategory(cat)));
         const newCategories = await getCategories();
         setCategories(newCategories);
@@ -87,7 +93,7 @@ export default function CategoriesPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch categories.",
+        description: "Failed to fetch or add categories. Please check your Firestore rules and configuration.",
       });
     } finally {
       setIsLoading(false);
@@ -95,7 +101,14 @@ export default function CategoriesPage() {
   };
 
   useEffect(() => {
-    fetchCategories();
+    // We need to wait for Firebase to initialize.
+    // A simple timeout can work for this demo purpose, but a more robust solution
+    // might involve a state management that confirms Firebase initialization.
+    const timer = setTimeout(() => {
+        fetchCategories();
+    }, 1000); // Wait 1 second for firebase to initialize
+
+    return () => clearTimeout(timer);
   }, []);
 
   const onSubmit = async (data: CategoryFormValues) => {
@@ -107,7 +120,7 @@ export default function CategoriesPage() {
       });
       form.reset();
       setIsAdding(false);
-      fetchCategories();
+      fetchCategories(); // Refetch after adding
     } catch (error) {
       toast({
         variant: "destructive",
