@@ -1,18 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
-import { getOrders, getProducts, Order, Product } from "@/lib/db";
+import { getOrders, getProducts, Order, Product, getCustomers } from "@/lib/db";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-
-const stats = [
-    { title: "Total Revenue", value: "₹45,231.89", change: "+20.1% from last month", icon: DollarSign },
-    { title: "Subscriptions", value: "+2350", change: "+180.1% from last month", icon: Users },
-    { title: "Sales", value: "+12,234", change: "+19% from last month", icon: CreditCard },
-    { title: "Active Now", value: "+573", change: "+201 since last hour", icon: Activity },
-];
 
 function getStatusVariant(status: Order['status']) {
     switch (status) {
@@ -24,8 +17,25 @@ function getStatusVariant(status: Order['status']) {
 };
 
 export default async function DashboardPage() {
-    const recentOrders = await getOrders(5);
-    const topProducts = await getProducts(5);
+    const [recentOrders, topProducts, customers, allOrders] = await Promise.all([
+        getOrders(5),
+        getProducts(5),
+        getCustomers(),
+        getOrders()
+    ]);
+
+    const totalRevenue = allOrders.reduce((sum, order) => sum + order.total, 0);
+    const totalSales = allOrders.length;
+    const totalCustomers = customers.length;
+
+
+    const stats = [
+        { title: "Total Revenue", value: `₹${totalRevenue.toFixed(2)}`, icon: DollarSign },
+        { title: "Customers", value: `+${totalCustomers}`, icon: Users },
+        { title: "Sales", value: `+${totalSales}`, icon: CreditCard },
+        { title: "Active Now", value: "+573", change: "+201 since last hour", icon: Activity },
+    ];
+
 
     return (
         <>
@@ -41,7 +51,7 @@ export default async function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stat.value}</div>
-                            <p className="text-xs text-muted-foreground">{stat.change}</p>
+                            {stat.change && <p className="text-xs text-muted-foreground">{stat.change}</p>}
                         </CardContent>
                     </Card>
                 ))}
@@ -78,7 +88,12 @@ export default async function DashboardPage() {
                                 </TableBody>
                             </Table>
                         ) : (
-                            <p className="text-muted-foreground italic">No recent orders.</p>
+                             <div className="text-center py-12 text-muted-foreground">
+                                <p>No recent orders found.</p>
+                                <Button asChild variant="outline" className="mt-4">
+                                    <Link href="/admin/orders">View All Orders</Link>
+                                </Button>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
@@ -101,7 +116,9 @@ export default async function DashboardPage() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-muted-foreground italic">No products found.</p>
+                            <div className="text-center py-12 text-muted-foreground">
+                                <p>No products found.</p>
+                            </div>
                         )}
                          <Button asChild variant="outline" className="w-full mt-6">
                             <Link href="/admin/products">View All Books <ArrowRight className="ml-2 h-4 w-4"/></Link>
