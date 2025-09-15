@@ -36,9 +36,6 @@ export type CategoryInput = Omit<Category, "id" | "createdAt">;
 
 export const addProduct = async (product: ProductInput): Promise<string> => {
   try {
-    if (!db) {
-      throw new Error("Firestore database is not available.");
-    }
     const docRef = await addDoc(collection(db, "products"), {
       ...product,
       createdAt: serverTimestamp(),
@@ -53,9 +50,6 @@ export const addProduct = async (product: ProductInput): Promise<string> => {
 
 export const getProducts = async (): Promise<Product[]> => {
   try {
-    if (!db) {
-      throw new Error("Firestore database is not available.");
-    }
     const q = query(collection(db, "products"));
     const querySnapshot = await getDocs(q);
     const products: Product[] = [];
@@ -71,9 +65,6 @@ export const getProducts = async (): Promise<Product[]> => {
 
 export const addCategory = async (category: CategoryInput): Promise<string> => {
     try {
-        if (!db) {
-          throw new Error("Firestore database is not available.");
-        }
         const docRef = await addDoc(collection(db, "categories"), {
             ...category,
             createdAt: serverTimestamp(),
@@ -87,9 +78,6 @@ export const addCategory = async (category: CategoryInput): Promise<string> => {
 
 export const getCategories = async (): Promise<Category[]> => {
     try {
-        if (!db) {
-          throw new Error("Firestore database is not available.");
-        }
         const q = query(collection(db, "categories"));
         const querySnapshot = await getDocs(q);
         const categories: Category[] = [];
