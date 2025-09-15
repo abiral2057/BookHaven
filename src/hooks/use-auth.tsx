@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
       setUser(user);
       
       if(user) {
@@ -51,13 +52,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // Redirect based on role after sign-in
-      // This part is tricky as isAdmin state might not be updated immediately.
-      // A more robust solution might involve checking the user's role on the server-side
-      // or using a callback after the onAuthStateChanged listener updates the state.
-      // For now, we will redirect to the customer dashboard by default.
-      router.push('/dashboard');
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+       const tokenResult = await user.getIdTokenResult();
+      if (tokenResult.claims.admin === true || (ADMIN_UID && user.uid === ADMIN_UID)) {
+          router.push('/admin/dashboard');
+      } else {
+          router.push('/dashboard');
+      }
     } catch (error) {
       console.error("Error signing in with Google: ", error);
       // You might want to show a toast notification here
@@ -67,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       await signOut(auth);
-      // Redirect to home page after logout
+      // Redirect to home page after logout, if on a protected route
       if(pathname.startsWith('/admin') || pathname.startsWith('/dashboard')) {
           router.push('/');
       }
