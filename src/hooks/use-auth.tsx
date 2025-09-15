@@ -15,7 +15,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Hardcoded admin UID for simplicity. In a real app, this should be managed in a database.
+// In a real app, this should be managed in a database or with custom claims.
 const ADMIN_UID = process.env.NEXT_PUBLIC_ADMIN_UID;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -26,15 +26,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setLoading(true);
       setUser(user);
       
       if(user) {
-        // In a real app, you would get a custom claim or check a 'roles' collection in Firestore
-        const tokenResult = await user.getIdTokenResult();
-        // For this demo, we'll check a custom claim or an env variable
-        if (tokenResult.claims.admin === true || (ADMIN_UID && user.uid === ADMIN_UID)) {
+        // This is a simplified check. For production, use Firestore-backed roles or custom claims.
+        if (ADMIN_UID && user.uid === ADMIN_UID) {
           setIsAdmin(true);
         } else {
           setIsAdmin(false);
