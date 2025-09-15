@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
                             <ShieldAlert className="h-4 w-4" />
                             <AlertTitle>Access Denied</AlertTitle>
                             <AlertDescription>
-                                The account you signed in with does not have admin privileges. Please sign in with an authorized admin account.
+                                The account you signed in with does not have admin privileges. Please set the NEXT_PUBLIC_ADMIN_UID in your .env.local file with your Firebase User ID.
                             </AlertDescription>
                         </Alert>
                     )}
