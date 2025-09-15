@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { addProduct, type Product } from "@/lib/db";
+import { addProduct } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle } from "lucide-react";
 
@@ -50,12 +50,11 @@ export default function ProductsPage() {
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      const newProduct: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
+      await addProduct({
         ...data,
         images: [],
         category: "default",
-      };
-      await addProduct(newProduct);
+      });
       toast({
         title: "Success",
         description: "Product added successfully.",

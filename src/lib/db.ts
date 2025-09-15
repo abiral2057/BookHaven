@@ -5,6 +5,13 @@ import {
   addDoc,
   serverTimestamp,
   type Timestamp,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -20,9 +27,9 @@ export interface Product {
   updatedAt: Timestamp;
 }
 
-export const addProduct = async (
-  product: Omit<Product, "id" | "createdAt" | "updatedAt">
-) => {
+export type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt">;
+
+export const addProduct = async (product: ProductInput): Promise<string> => {
   try {
     const docRef = await addDoc(collection(db, "products"), {
       ...product,
