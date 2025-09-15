@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -46,6 +45,7 @@ import { checkDbConnection } from "@/lib/firebase";
 
 const productSchema = z.object({
   name: z.string().min(1, "Book title is required"),
+  author: z.string().min(1, "Author is required"),
   description: z.string().min(1, "Description is required"),
   price: z.coerce.number().min(0, "Price must be a positive number"),
   stock: z.coerce.number().min(0, "Stock must be a positive number"),
@@ -66,6 +66,7 @@ export default function ProductsPage() {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
+      author: "",
       description: "",
       price: 0,
       stock: 0,
@@ -177,6 +178,19 @@ export default function ProductsPage() {
                       <FormLabel>Book Title</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. The Great Gatsby" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="author"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Author</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. F. Scott Fitzgerald" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -296,9 +310,10 @@ export default function ProductsPage() {
                   <TableRow>
                     <TableHead>Cover</TableHead>
                     <TableHead>Title</TableHead>
+                    <TableHead>Author</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
-                     <TableHead>Category</TableHead>
+                    <TableHead>Category</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -320,6 +335,7 @@ export default function ProductsPage() {
                         )}
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.author}</TableCell>
                       <TableCell>${product.price.toFixed(2)}</TableCell>
                       <TableCell>{product.stock}</TableCell>
                       <TableCell>{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
@@ -344,4 +360,3 @@ export default function ProductsPage() {
     </>
   );
 }
-    
