@@ -10,17 +10,21 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 function getStatusVariant(status: Order['status']) {
     switch (status) {
         case 'Pending': return 'default';
-        case 'Shipped': return 'secondary';
+        case 'Confirmed': return 'secondary';
+        case 'Shipping': return 'secondary';
         case 'Delivered': return 'outline';
+        case 'Refunded': return 'destructive';
         default: return 'default';
     }
 };
 
 export default function DashboardPage() {
+    const { user } = useAuth();
     const [recentOrders, setRecentOrders] = useState<Order[]>([]);
     const [topProducts, setTopProducts] = useState<Product[]>([]);
     const [stats, setStats] = useState({
@@ -32,6 +36,8 @@ export default function DashboardPage() {
     const { toast } = useToast();
 
     useEffect(() => {
+        if (!user) return;
+
         const fetchData = async () => {
             setIsLoading(true);
             try {
@@ -41,7 +47,11 @@ export default function DashboardPage() {
                     getCustomers()
                 ]);
 
-                const totalRevenue = ordersData.reduce((sum, order) => sum + (typeof order.total === 'number' ? order.total : 0), 0);
+                const totalRevenue = ordersData.reduce((sum, order) => {
+                    const total = typeof order.total === 'number' ? order.total : 0;
+                    return sum + total;
+                }, 0);
+                
                 const totalSales = ordersData.length;
                 const totalCustomers = customersData.length;
 
@@ -62,7 +72,7 @@ export default function DashboardPage() {
         };
 
         fetchData();
-    }, [toast]);
+    }, [toast, user]);
 
     const statCards = [
         { title: "Total Revenue", value: `₹${stats.totalRevenue.toFixed(2)}`, icon: DollarSign },

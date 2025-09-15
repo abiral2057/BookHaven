@@ -156,13 +156,11 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const customers: Customer[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      const firstOrderAtRaw = data.firstOrderAt as Timestamp | Date;
-      const firstOrderAt = firstOrderAtRaw instanceof Date ? firstOrderAtRaw : firstOrderAtRaw?.toDate() ?? new Date();
-
+      const firstOrderAtRaw = data.firstOrderAt as Timestamp | null;
       customers.push({ 
           id: doc.id, 
           ...data,
-          firstOrderAt: firstOrderAt
+          firstOrderAt: firstOrderAtRaw?.toDate() ?? new Date(),
       } as Customer);
     });
     return customers;
@@ -208,12 +206,11 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
         const orders: Order[] = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const createdAtRaw = data.createdAt as Timestamp | Date;
-            const createdAt = createdAtRaw instanceof Date ? createdAtRaw : createdAtRaw?.toDate() ?? new Date();
+            const createdAtRaw = data.createdAt as Timestamp | null;
             orders.push({ 
                 id: doc.id, 
                 ...data,
-                createdAt: createdAt
+                createdAt: createdAtRaw?.toDate() ?? new Date()
             } as Order);
         });
         return orders;
@@ -232,12 +229,11 @@ export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
         const orders: Order[] = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const createdAtRaw = data.createdAt as Timestamp | Date;
-            const createdAt = createdAtRaw instanceof Date ? createdAtRaw : createdAtRaw?.toDate() ?? new Date();
+            const createdAtRaw = data.createdAt as Timestamp | null;
             orders.push({ 
                 id: doc.id, 
                 ...data,
-                createdAt: createdAt
+                createdAt: createdAtRaw?.toDate() ?? new Date()
             } as Order);
         });
         return orders;
