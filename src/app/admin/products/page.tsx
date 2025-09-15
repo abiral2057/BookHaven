@@ -297,7 +297,7 @@ export default function ProductsPage() {
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
                      <TableHead>Category</TableHead>
-                  </tr  </TableRow>
+                  </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.map((product) => (
