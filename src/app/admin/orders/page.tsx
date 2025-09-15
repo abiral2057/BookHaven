@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   Pending: 'default',
@@ -30,8 +31,17 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchOrders = async () => {
       try {
         const fetchedOrders = await getOrders();
@@ -49,7 +59,7 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, [toast]);
+  }, [toast, user, authLoading]);
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
@@ -107,7 +117,7 @@ export default function OrdersPage() {
                 {orders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">
-                      {order.createdAt ? format(new Date(order.createdAt), 'PPpp') : 'N/A'}
+                      {order.createdAt ? format(order.createdAt, 'PPpp') : 'N/A'}
                     </TableCell>
                     <TableCell>
                       <div>{order.customer.name}</div>

@@ -23,10 +23,14 @@ const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'out
 export default function CustomerDashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
+    if (authLoading) {
+        return;
+    }
+    
     const fetchOrders = async () => {
       if (!user) {
         setIsLoading(false);
@@ -49,7 +53,7 @@ export default function CustomerDashboardPage() {
     };
 
     fetchOrders();
-  }, [user, toast]);
+  }, [user, toast, authLoading]);
 
   const getStatusVariant = (status: Order['status']) => {
      return statusVariants[status] || 'default';
@@ -83,7 +87,7 @@ export default function CustomerDashboardPage() {
                 {orders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">
-                      {order.createdAt ? format(new Date(order.createdAt), 'PPpp') : 'N/A'}
+                      {order.createdAt ? format(order.createdAt, 'PPpp') : 'N/A'}
                     </TableCell>
                     <TableCell>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
                     <TableCell>₹{order.total.toFixed(2)}</TableCell>
