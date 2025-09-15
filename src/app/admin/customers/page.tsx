@@ -34,11 +34,12 @@ export default function CustomersPage() {
   }, [toast]);
   
   const getInitials = (name: string) => {
+    if (!name) return '??';
     const names = name.split(' ');
     if (names.length > 1) {
       return `${names[0][0]}${names[1][0]}`.toUpperCase();
     }
-    return names[0].substring(0, 2).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
   }
 
   return (
@@ -77,7 +78,7 @@ export default function CustomersPage() {
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>
-                      {customer.firstOrderAt ? format(new Date(customer.firstOrderAt as any), 'PPP') : 'N/A'}
+                      {customer.firstOrderAt ? format(new Date(customer.firstOrderAt), 'PPP') : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))}

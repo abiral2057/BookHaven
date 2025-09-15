@@ -48,7 +48,7 @@ export interface Customer {
   address: string;
   city: string;
   postalCode: string;
-  firstOrderAt: Date | Timestamp;
+  firstOrderAt: Date;
 }
 
 export type CustomerInput = Omit<Customer, "id" | "firstOrderAt">;
@@ -62,7 +62,7 @@ export interface Order {
   items: CartItem[];
   total: number;
   status: "Pending" | "Shipped" | "Delivered";
-  createdAt: Date | Timestamp;
+  createdAt: Date;
 }
 
 
@@ -160,7 +160,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
       customers.push({ 
           id: doc.id, 
           ...data,
-          firstOrderAt: firstOrderAt && typeof firstOrderAt.toDate === 'function' ? firstOrderAt.toDate() : firstOrderAt 
+          firstOrderAt: firstOrderAt?.toDate ? firstOrderAt.toDate() : new Date()
       } as Customer);
     });
     return customers;
@@ -210,7 +210,7 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
             orders.push({ 
                 id: doc.id, 
                 ...data,
-                createdAt: createdAt && typeof createdAt.toDate === 'function' ? createdAt.toDate() : createdAt
+                createdAt: createdAt?.toDate ? createdAt.toDate() : new Date()
             } as Order);
         });
         return orders;
