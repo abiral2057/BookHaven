@@ -80,9 +80,13 @@ export const addProduct = async (product: ProductInput): Promise<string> => {
   }
 };
 
-export const getProducts = async (): Promise<Product[]> => {
+export const getProducts = async (count?: number): Promise<Product[]> => {
   try {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const productsRef = collection(db, "products");
+    const q = count 
+      ? query(productsRef, orderBy("createdAt", "desc"), limit(count))
+      : query(productsRef, orderBy("createdAt", "desc"));
+      
     const querySnapshot = await getDocs(q);
     const products: Product[] = [];
     querySnapshot.forEach((doc) => {
@@ -185,9 +189,13 @@ export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status">
     }
 }
 
-export const getOrders = async (): Promise<Order[]> => {
+export const getOrders = async (count?: number): Promise<Order[]> => {
     try {
-        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        const ordersRef = collection(db, "orders");
+        const q = count 
+          ? query(ordersRef, orderBy("createdAt", "desc"), limit(count))
+          : query(ordersRef, orderBy("createdAt", "desc"));
+
         const querySnapshot = await getDocs(q);
         const orders: Order[] = [];
         querySnapshot.forEach((doc) => {
