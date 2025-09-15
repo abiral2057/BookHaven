@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { Book } from 'lucide-react';
+import { addOrder } from "@/lib/db";
 
 const shippingSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -66,22 +67,41 @@ export default function CheckoutPage() {
   });
 
   const onSubmit: SubmitHandler<ShippingFormValues> = async (data) => {
-    // This is a simulation. In a real app, you would process payment here.
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    console.log("Order submitted:", {
-      shippingDetails: data,
-      items: cartItems,
-      total: cartTotal,
-    });
-    
-    toast({
-      title: "Order Placed!",
-      description: "Thank you for your purchase.",
-    });
+    if (cartItems.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Your cart is empty",
+        description: "You cannot place an order with an empty cart.",
+      });
+      return;
+    }
 
-    clearCart();
-    router.push("/order-confirmation");
+    try {
+      await addOrder({
+        customer: {
+          name: data.name,
+          email: data.email,
+        },
+        items: cartItems,
+        total: cartTotal,
+      });
+
+      toast({
+        title: "Order Placed!",
+        description: "Thank you for your purchase.",
+      });
+
+      clearCart();
+      router.push("/order-confirmation");
+
+    } catch (error) {
+      console.error("Failed to place order:", error);
+      toast({
+        variant: "destructive",
+        title: "Order Failed",
+        description: "There was a problem placing your order. Please try again.",
+      });
+    }
   };
 
   if (cartItems.length === 0 && typeof window !== 'undefined') {
