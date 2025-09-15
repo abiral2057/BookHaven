@@ -67,7 +67,6 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const fetchAndSeedCategories = async () => {
-      // Wait until the database is ready.
       const dbReady = await isDbReady();
       if (!dbReady) {
         toast({
@@ -257,3 +256,5 @@ export default function CategoriesPage() {
     </>
   );
 }
+
+    

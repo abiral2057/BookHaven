@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -99,6 +100,7 @@ export default function ProductsPage() {
           title: "Error",
           description: "Failed to fetch data. Please ensure Firestore rules are correct.",
         });
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
