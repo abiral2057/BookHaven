@@ -41,6 +41,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import Image from "next/image";
+import { isDbReady } from "@/lib/firebase";
 
 const productSchema = z.object({
   name: z.string().min(1, "Book title is required"),
@@ -72,29 +73,39 @@ export default function ProductsPage() {
     },
   });
 
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      const [fetchedProducts, fetchedCategories] = await Promise.all([
-        getProducts(),
-        getCategories(),
-      ]);
-      setProducts(fetchedProducts);
-      setCategories(fetchedCategories);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch data.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      const dbReady = await isDbReady();
+      if (!dbReady) {
+        toast({
+          variant: "destructive",
+          title: "Database Error",
+          description: "Could not connect to the database. Please check your Firebase configuration and internet connection.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const [fetchedProducts, fetchedCategories] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
+        setProducts(fetchedProducts);
+        setCategories(fetchedCategories);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch data. Please ensure Firestore rules are correct.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     fetchData();
-  }, []);
+  }, [toast]);
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
@@ -108,7 +119,13 @@ export default function ProductsPage() {
       });
       form.reset();
       setIsAdding(false);
-      fetchData(); // Refresh the product list
+      
+      // Refresh the product list
+      setIsLoading(true);
+      const newProducts = await getProducts();
+      setProducts(newProducts);
+      setIsLoading(false);
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -202,7 +219,7 @@ export default function ProductsPage() {
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
+                            </Trigger>
                           </FormControl>
                           <SelectContent>
                             {categories.map((category) => (
@@ -270,7 +287,7 @@ export default function ProductsPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p>Loading books...</p>
+              <div className="text-center py-12">Loading books...</div>
             ) : products.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -280,7 +297,7 @@ export default function ProductsPage() {
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
                      <TableHead>Category</TableHead>
-                  </TableRow>
+                  </tr  </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.map((product) => (

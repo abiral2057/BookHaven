@@ -33,7 +33,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { db } from "@/lib/firebase"; // Import db to check for initialization
+import { isDbReady } from "@/lib/firebase";
 
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -65,51 +65,50 @@ export default function CategoriesPage() {
   
   const seeded = useRef(false);
 
-  const fetchCategories = async () => {
-    // Prevent fetching if db is not ready
-    if (!db) {
-        return;
-    }
-    try {
-      setIsLoading(true);
-      const fetchedCategories = await getCategories();
-      
-      // Seed data only if the categories are empty and it hasn't been attempted before
-      if (fetchedCategories.length === 0 && !seeded.current) {
-        seeded.current = true; // Mark as attempted
-        await Promise.all(defaultCategories.map(cat => addCategory(cat)));
-        const newCategories = await getCategories();
-        setCategories(newCategories);
-         toast({
-          title: "Sample Categories Added",
-          description: "A few example categories have been added to your database.",
+  useEffect(() => {
+    const fetchAndSeedCategories = async () => {
+      // Wait until the database is ready.
+      const dbReady = await isDbReady();
+      if (!dbReady) {
+        toast({
+          variant: "destructive",
+          title: "Database Error",
+          description: "Could not connect to the database. Please check your Firebase configuration and internet connection.",
         });
-      } else {
-        setCategories(fetchedCategories);
+        setIsLoading(false);
+        return;
       }
 
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch or add categories. Please check your Firestore rules and configuration.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      try {
+        const fetchedCategories = await getCategories();
+        
+        if (fetchedCategories.length === 0 && !seeded.current) {
+          seeded.current = true;
+          await Promise.all(defaultCategories.map(cat => addCategory(cat)));
+          const newCategories = await getCategories();
+          setCategories(newCategories);
+           toast({
+            title: "Sample Categories Added",
+            description: "A few example categories have been added to your database.",
+          });
+        } else {
+          setCategories(fetchedCategories);
+        }
 
-  useEffect(() => {
-    // We need to wait for Firebase to initialize.
-    // A simple timeout can work for this demo purpose, but a more robust solution
-    // might involve a state management that confirms Firebase initialization.
-    const timer = setTimeout(() => {
-        fetchCategories();
-    }, 1000); // Wait 1 second for firebase to initialize
-
-    return () => clearTimeout(timer);
-  }, []);
+      } catch (error) {
+        console.error("Error during category fetch/seed:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch or add categories. Please ensure your Firestore rules are correct.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchAndSeedCategories();
+  }, [toast]);
 
   const onSubmit = async (data: CategoryFormValues) => {
     try {
@@ -120,7 +119,13 @@ export default function CategoriesPage() {
       });
       form.reset();
       setIsAdding(false);
-      fetchCategories(); // Refetch after adding
+      
+      // Refetch after adding
+      setIsLoading(true);
+      const newCategories = await getCategories();
+      setCategories(newCategories);
+      setIsLoading(false);
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -217,7 +222,7 @@ export default function CategoriesPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p>Loading categories...</p>
+              <div className="text-center py-12">Loading categories...</div>
             ) : categories.length > 0 ? (
               <Table>
                 <TableHeader>
