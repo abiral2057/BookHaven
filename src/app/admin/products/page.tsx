@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,9 +22,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { addProduct } from "@/lib/db";
+import { addProduct, getProducts, Product } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -37,6 +45,8 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 export default function ProductsPage() {
   const [isAdding, setIsAdding] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -47,6 +57,26 @@ export default function ProductsPage() {
       stock: 0,
     },
   });
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedProducts = await getProducts();
+      setProducts(fetchedProducts);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch products.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
@@ -61,6 +91,7 @@ export default function ProductsPage() {
       });
       form.reset();
       setIsAdding(false);
+      fetchProducts(); // Refresh the product list
     } catch (error) {
       toast({
         variant: "destructive",
@@ -178,15 +209,38 @@ export default function ProductsPage() {
       ) : (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Product Management</CardTitle>
+            <CardTitle>Product List</CardTitle>
             <CardDescription>
-              Here you will be able to see and manage all your products.
+              Here are all the products in your store.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground italic">
-              No products yet. Click "Add Product" to get started.
-            </p>
+            {isLoading ? (
+              <p>Loading products...</p>
+            ) : products.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>${product.price.toFixed(2)}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-muted-foreground italic">
+                No products yet. Click "Add Product" to get started.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
