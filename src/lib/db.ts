@@ -154,6 +154,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const customers: Customer[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      // Safely convert Timestamp to Date
       const firstOrderAt = (data.firstOrderAt as Timestamp)?.toDate ? (data.firstOrderAt as Timestamp).toDate() : new Date();
       customers.push({ 
           id: doc.id, 
@@ -204,6 +205,7 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
         const orders: Order[] = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            // Safely convert Timestamp to Date
             const createdAt = (data.createdAt as Timestamp)?.toDate ? (data.createdAt as Timestamp).toDate() : new Date();
             orders.push({ 
                 id: doc.id, 

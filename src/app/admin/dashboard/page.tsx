@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
 import { getOrders, getProducts, Order, Product, getCustomers } from "@/lib/db";
@@ -6,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 function getStatusVariant(status: Order['status']) {
     switch (status) {
@@ -16,26 +20,64 @@ function getStatusVariant(status: Order['status']) {
     }
 };
 
-export default async function DashboardPage() {
-    const [recentOrders, topProducts, customers, allOrders] = await Promise.all([
-        getOrders(5),
-        getProducts(5),
-        getCustomers(),
-        getOrders()
-    ]);
+export default function DashboardPage() {
+    const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+    const [topProducts, setTopProducts] = useState<Product[]>([]);
+    const [stats, setStats] = useState({
+        totalRevenue: 0,
+        totalSales: 0,
+        totalCustomers: 0,
+    });
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
 
-    const totalRevenue = allOrders.reduce((sum, order) => sum + (typeof order.total === 'number' ? order.total : 0), 0);
-    const totalSales = allOrders.length;
-    const totalCustomers = customers.length;
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                const [ordersData, productsData, customersData] = await Promise.all([
+                    getOrders(),
+                    getProducts(5),
+                    getCustomers()
+                ]);
 
+                const totalRevenue = ordersData.reduce((sum, order) => sum + (typeof order.total === 'number' ? order.total : 0), 0);
+                const totalSales = ordersData.length;
+                const totalCustomers = customersData.length;
 
-    const stats = [
-        { title: "Total Revenue", value: `₹${totalRevenue.toFixed(2)}`, icon: DollarSign },
-        { title: "Customers", value: `+${totalCustomers}`, icon: Users },
-        { title: "Sales", value: `+${totalSales}`, icon: CreditCard },
+                setStats({ totalRevenue, totalSales, totalCustomers });
+                setRecentOrders(ordersData.slice(0, 5));
+                setTopProducts(productsData);
+
+            } catch (error) {
+                console.error("Error fetching dashboard data:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Error Fetching Data",
+                    description: "Could not load dashboard data. Your Firestore rules may be incorrect.",
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [toast]);
+
+    const statCards = [
+        { title: "Total Revenue", value: `₹${stats.totalRevenue.toFixed(2)}`, icon: DollarSign },
+        { title: "Customers", value: `+${stats.totalCustomers}`, icon: Users },
+        { title: "Sales", value: `+${stats.totalSales}`, icon: CreditCard },
         { title: "Active Now", value: "+573", change: "+201 since last hour", icon: Activity },
     ];
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+            </div>
+        )
+    }
 
     return (
         <>
@@ -43,7 +85,7 @@ export default async function DashboardPage() {
             <p className="text-muted-foreground">An overview of your store's performance.</p>
             
             <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat) => (
+                {statCards.map((stat) => (
                     <Card key={stat.title}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
