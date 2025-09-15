@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gem } from 'lucide-react';
+import { Book } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -35,10 +35,10 @@ export default function AdminLoginPage() {
             <Card className="w-full max-w-md shadow-2xl bg-card">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-4 flex items-center justify-center h-16 w-16 rounded-full bg-primary/10">
-                        <Gem className="h-8 w-8 text-primary" />
+                        <Book className="h-8 w-8 text-primary" />
                     </div>
-                    <CardTitle className="text-3xl font-bold font-headline">SwiftStore Admin</CardTitle>
-                    <CardDescription>Sign in to manage your store</CardDescription>
+                    <CardTitle className="text-3xl font-bold font-headline">BookHaven Admin</CardTitle>
+                    <CardDescription>Sign in to manage your bookstore</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">

@@ -24,6 +24,16 @@ export interface Product {
 
 export type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt">;
 
+export interface Category {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: Timestamp;
+}
+
+export type CategoryInput = Omit<Category, "id" | "createdAt">;
+
+
 export const addProduct = async (product: ProductInput): Promise<string> => {
   try {
     const docRef = await addDoc(collection(db, "products"), {
@@ -51,4 +61,32 @@ export const getProducts = async (): Promise<Product[]> => {
     console.error("Error getting documents: ", e);
     throw new Error("Could not get products");
   }
+}
+
+export const addCategory = async (category: CategoryInput): Promise<string> => {
+    try {
+        const docRef = await addDoc(collection(db, "categories"), {
+            ...category,
+            createdAt: serverTimestamp(),
+        });
+        return docRef.id;
+    } catch (e) {
+        console.error("Error adding document: ", e);
+        throw new Error("Could not add category");
+    }
+};
+
+export const getCategories = async (): Promise<Category[]> => {
+    try {
+        const q = query(collection(db, "categories"));
+        const querySnapshot = await getDocs(q);
+        const categories: Category[] = [];
+        querySnapshot.forEach((doc) => {
+            categories.push({ id: doc.id, ...doc.data() } as Category);
+        });
+        return categories;
+    } catch (e) {
+        console.error("Error getting documents: ", e);
+        throw new Error("Could not get categories");
+    }
 }

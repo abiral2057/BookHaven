@@ -13,12 +13,12 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gem, LayoutDashboard, Package, ShoppingCart, Tag, Users, Settings } from 'lucide-react';
+import { Book, LayoutDashboard, Package, ShoppingCart, Tag, Users, Settings } from 'lucide-react';
 import { UserNav } from './user-nav';
 
 const navItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/admin/products', icon: Package, label: 'Products' },
+  { href: '/admin/products', icon: Package, label: 'Books' },
   { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
   { href: '/admin/categories', icon: Tag, label: 'Categories' },
   { href: '/admin/customers', icon: Users, label: 'Customers' },
@@ -34,9 +34,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <SidebarHeader>
             <div className="flex items-center gap-2 p-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Gem className="h-5 w-5" />
+                <Book className="h-5 w-5" />
               </div>
-              <span className="text-lg font-semibold font-headline">SwiftStore</span>
+              <span className="text-lg font-semibold font-headline">BookHaven</span>
             </div>
           </SidebarHeader>
           <SidebarContent>
