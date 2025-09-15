@@ -5,13 +5,6 @@ import {
   addDoc,
   serverTimestamp,
   type Timestamp,
-  doc,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  getDocs,
-  query,
-  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
