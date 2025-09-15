@@ -24,7 +24,7 @@ export default async function DashboardPage() {
         getOrders()
     ]);
 
-    const totalRevenue = allOrders.reduce((sum, order) => sum + order.total, 0);
+    const totalRevenue = allOrders.reduce((sum, order) => sum + (typeof order.total === 'number' ? order.total : 0), 0);
     const totalSales = allOrders.length;
     const totalCustomers = customers.length;
 
