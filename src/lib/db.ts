@@ -1,5 +1,3 @@
-"use client";
-
 import {
   collection,
   addDoc,
@@ -156,7 +154,6 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const customers: Customer[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      // Safe conversion of Firestore Timestamp to JS Date
       const firstOrderAt = (data.firstOrderAt as Timestamp)?.toDate ? (data.firstOrderAt as Timestamp).toDate() : new Date();
       customers.push({ 
           id: doc.id, 
@@ -207,7 +204,6 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
         const orders: Order[] = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-             // Safe conversion of Firestore Timestamp to JS Date
             const createdAt = (data.createdAt as Timestamp)?.toDate ? (data.createdAt as Timestamp).toDate() : new Date();
             orders.push({ 
                 id: doc.id, 
