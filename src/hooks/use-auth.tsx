@@ -52,17 +52,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-       const tokenResult = await user.getIdTokenResult();
-      if (tokenResult.claims.admin === true || (ADMIN_UID && user.uid === ADMIN_UID)) {
-          router.push('/admin/dashboard');
-      } else {
-          router.push('/dashboard');
-      }
+      await signInWithPopup(auth, provider);
+      // Let the onAuthStateChanged listener handle redirection and state updates
     } catch (error) {
       console.error("Error signing in with Google: ", error);
-      // You might want to show a toast notification here
+      // Throw the error so the UI can catch it and display a toast
+      throw error;
     }
   };
 

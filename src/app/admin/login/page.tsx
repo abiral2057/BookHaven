@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Book } from 'lucide-react';
+import { Book, ShieldAlert } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -19,19 +21,37 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function AdminLoginPage() {
     const { user, isAdmin, signInWithGoogle, loading } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
+    const [authAttempted, setAuthAttempted] = useState(false);
 
     useEffect(() => {
         if (!loading && user) {
             if (isAdmin) {
                 router.push('/admin/dashboard');
             } else {
-                router.push('/dashboard');
+                // User is logged in but not an admin.
+                // We show a message on this page.
+                setAuthAttempted(true);
             }
         }
     }, [user, isAdmin, loading, router]);
     
-    if(loading || (!loading && user)) {
+    if(loading || (!loading && user && isAdmin)) {
         return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
+    }
+
+    const handleSignIn = async () => {
+        setAuthAttempted(false); // Reset on new sign-in attempt
+        try {
+            await signInWithGoogle();
+            // The useEffect will handle redirection
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Sign-in Failed",
+                description: "Could not sign in with Google. Please try again.",
+            });
+        }
     }
 
     return (
@@ -41,18 +61,28 @@ export default function AdminLoginPage() {
                     <div className="mx-auto mb-4 flex items-center justify-center h-16 w-16 rounded-full bg-primary/10">
                         <Book className="h-8 w-8 text-primary" />
                     </div>
-                    <CardTitle className="text-3xl font-bold font-headline">BookHaven</CardTitle>
-                    <CardDescription>Sign in to continue</CardDescription>
+                    <CardTitle className="text-3xl font-bold font-headline">BookHaven Admin</CardTitle>
+                    <CardDescription>Sign in to access the dashboard</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {authAttempted && !isAdmin && (
+                        <Alert variant="destructive" className="mb-4">
+                            <ShieldAlert className="h-4 w-4" />
+                            <AlertTitle>Access Denied</AlertTitle>
+                            <AlertDescription>
+                                The account you signed in with does not have admin privileges. Please sign in with an authorized admin account.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     <div className="space-y-4">
                         <Button
-                            onClick={signInWithGoogle}
+                            onClick={handleSignIn}
                             className="w-full text-lg py-6 bg-white text-gray-800 hover:bg-gray-100 border border-gray-300 shadow-sm"
                             variant="outline"
+                            disabled={loading}
                         >
                             <GoogleIcon className="mr-3" />
-                            Sign in with Google
+                            {loading ? "Signing in..." : "Sign in with Google"}
                         </Button>
                     </div>
                 </CardContent>
