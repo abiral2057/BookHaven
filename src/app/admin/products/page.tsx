@@ -33,12 +33,14 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import Image from "next/image";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().min(1, "Description is required"),
   price: z.coerce.number().min(0, "Price must be a positive number"),
   stock: z.coerce.number().min(0, "Stock must be a positive number"),
+  imageUrl: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -55,6 +57,7 @@ export default function ProductsPage() {
       description: "",
       price: 0,
       stock: 0,
+      imageUrl: "",
     },
   });
 
@@ -82,7 +85,7 @@ export default function ProductsPage() {
     try {
       await addProduct({
         ...data,
-        images: [],
+        images: data.imageUrl ? [data.imageUrl] : [],
         category: "default",
       });
       toast({
@@ -162,6 +165,19 @@ export default function ProductsPage() {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Image URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.com/image.png" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -221,6 +237,7 @@ export default function ProductsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Image</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
@@ -229,6 +246,21 @@ export default function ProductsPage() {
                 <TableBody>
                   {products.map((product) => (
                     <TableRow key={product.id}>
+                      <TableCell>
+                        {product.images && product.images[0] ? (
+                           <Image
+                            src={product.images[0]}
+                            alt={product.name}
+                            width={64}
+                            height={64}
+                            className="rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground">
+                            No Image
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>${product.price.toFixed(2)}</TableCell>
                       <TableCell>{product.stock}</TableCell>
