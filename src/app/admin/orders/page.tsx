@@ -75,7 +75,7 @@ export default function OrdersPage() {
                 {orders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">
-                      {order.createdAt ? format(order.createdAt.toDate(), 'PPpp') : 'N/A'}
+                      {order.createdAt ? format(new Date(order.createdAt as any), 'PPpp') : 'N/A'}
                     </TableCell>
                     <TableCell>
                       <div>{order.customer.name}</div>

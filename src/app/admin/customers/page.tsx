@@ -77,7 +77,7 @@ export default function CustomersPage() {
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>
-                      {customer.firstOrderAt ? format(customer.firstOrderAt.toDate(), 'PPP') : 'N/A'}
+                      {customer.firstOrderAt ? format(new Date(customer.firstOrderAt as any), 'PPP') : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))}

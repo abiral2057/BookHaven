@@ -48,7 +48,7 @@ export interface Customer {
   address: string;
   city: string;
   postalCode: string;
-  firstOrderAt: Timestamp;
+  firstOrderAt: Date | Timestamp;
 }
 
 export type CustomerInput = Omit<Customer, "id" | "firstOrderAt">;
@@ -62,7 +62,7 @@ export interface Order {
   items: CartItem[];
   total: number;
   status: "Pending" | "Shipped" | "Delivered";
-  createdAt: Timestamp;
+  createdAt: Date | Timestamp;
 }
 
 
@@ -155,7 +155,13 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const querySnapshot = await getDocs(q);
     const customers: Customer[] = [];
     querySnapshot.forEach((doc) => {
-      customers.push({ id: doc.id, ...doc.data() } as Customer);
+      const data = doc.data();
+      const firstOrderAt = data.firstOrderAt;
+      customers.push({ 
+          id: doc.id, 
+          ...data,
+          firstOrderAt: firstOrderAt && typeof firstOrderAt.toDate === 'function' ? firstOrderAt.toDate() : firstOrderAt 
+      } as Customer);
     });
     return customers;
   } catch (e) {
@@ -199,7 +205,13 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
         const querySnapshot = await getDocs(q);
         const orders: Order[] = [];
         querySnapshot.forEach((doc) => {
-            orders.push({ id: doc.id, ...doc.data() } as Order);
+            const data = doc.data();
+            const createdAt = data.createdAt;
+            orders.push({ 
+                id: doc.id, 
+                ...data,
+                createdAt: createdAt && typeof createdAt.toDate === 'function' ? createdAt.toDate() : createdAt
+            } as Order);
         });
         return orders;
     } catch (e) {
