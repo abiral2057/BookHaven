@@ -2,7 +2,7 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore, enableNetwork, disableNetwork } from "firebase/firestore";
+import { getFirestore, type Firestore, enableNetwork, disableNetwork, doc, setDoc, deleteDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   projectId: "studio-1002872063-5a675",
@@ -27,23 +27,48 @@ if (getApps().length === 0) {
 auth = getAuth(app);
 db = getFirestore(app);
 
-// A function to check if the database is online
-export const isDbReady = async (): Promise<boolean> => {
+// A function to check if the database is online and writable
+export const checkDbConnection = async (): Promise<{ ready: boolean; error?: string }> => {
   try {
-    // try to enable the network to see if it resolves
     await enableNetwork(db);
-    return true;
   } catch (e) {
     try {
-        // if that fails, try to disable and re-enable
-        await disableNetwork(db);
-        await enableNetwork(db);
-        return true;
-    } catch (error) {
-        console.error("Firebase network error:", error);
-        return false;
+      await disableNetwork(db);
+      await enableNetwork(db);
+    } catch (networkError) {
+      console.error("Firebase network error:", networkError);
+      return { ready: false, error: "Network error: Could not connect to Firebase." };
     }
   }
+
+  // Attempt a test write to verify security rules
+  if (auth.currentUser) {
+    try {
+      const testDocRef = doc(db, `_test_writes/${auth.currentUser.uid}`);
+      await setDoc(testDocRef, { timestamp: new Date() });
+      await deleteDoc(testDocRef);
+    } catch (e: any) {
+        console.error("Firestore security rule error:", e);
+        if (e.code === 'permission-denied') {
+            return { ready: false, error: "Permission Denied: Please check your Firestore security rules to allow writes." };
+        }
+        return { ready: false, error: "A database error occurred. Check console for details." };
+    }
+  } else {
+    // Cannot check rules if user is not logged in, assume ready if network is.
+    return { ready: true };
+  }
+  
+  return { ready: true };
 };
+
+/**
+ * @deprecated Use checkDbConnection instead for a more robust check.
+ */
+export const isDbReady = async (): Promise<boolean> => {
+  const { ready } = await checkDbConnection();
+  return ready;
+}
+
 
 export { app, auth, db };

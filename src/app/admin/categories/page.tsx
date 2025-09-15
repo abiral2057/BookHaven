@@ -33,7 +33,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { isDbReady } from "@/lib/firebase";
+import { checkDbConnection } from "@/lib/firebase";
 
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -67,12 +67,12 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const fetchAndSeedCategories = async () => {
-      const dbReady = await isDbReady();
-      if (!dbReady) {
+      const { ready, error } = await checkDbConnection();
+      if (!ready) {
         toast({
           variant: "destructive",
-          title: "Database Error",
-          description: "Could not connect to the database. Please check your Firebase configuration and internet connection.",
+          title: "Database Connection Error",
+          description: error || "Could not connect to the database. Please check your Firebase configuration and internet connection.",
         });
         setIsLoading(false);
         return;
@@ -99,7 +99,7 @@ export default function CategoriesPage() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to fetch or add categories. Please ensure your Firestore rules are correct.",
+          description: "Failed to fetch or add categories. Please check your Firestore rules.",
         });
       } finally {
         setIsLoading(false);
@@ -112,9 +112,9 @@ export default function CategoriesPage() {
   const onSubmit = async (data: CategoryFormValues) => {
     try {
       const newCategoryId = await addCategory(data);
-      const newCategory = { id: newCategoryId, ...data, createdAt: new Date() } as Category;
+      const newCategory = { id: newCategoryId, ...data } as Category;
       
-      setCategories((prevCategories) => [...prevCategories, newCategory]);
+      setCategories((prevCategories) => [...prevCategories, newCategory].sort((a, b) => a.name.localeCompare(b.name)));
       
       toast({
         title: "Success",
@@ -127,7 +127,7 @@ export default function CategoriesPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add category. Please try again.",
+        description: "Failed to add category. Your Firestore security rules may be blocking the operation.",
       });
       console.error("Error adding category:", error);
     }

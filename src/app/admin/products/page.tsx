@@ -42,7 +42,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import Image from "next/image";
-import { isDbReady } from "@/lib/firebase";
+import { checkDbConnection } from "@/lib/firebase";
 
 const productSchema = z.object({
   name: z.string().min(1, "Book title is required"),
@@ -76,12 +76,12 @@ export default function ProductsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const dbReady = await isDbReady();
-      if (!dbReady) {
+      const { ready, error } = await checkDbConnection();
+      if (!ready) {
         toast({
           variant: "destructive",
-          title: "Database Error",
-          description: "Could not connect to the database. Please check your Firebase configuration and internet connection.",
+          title: "Database Connection Error",
+          description: error || "Could not connect to the database. Please check your Firebase configuration and internet connection.",
         });
         setIsLoading(false);
         return;
@@ -132,7 +132,7 @@ export default function ProductsPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add book. Please try again.",
+        description: "Failed to add book. Your Firestore security rules may be blocking the operation.",
       });
       console.error("Error adding book:", error);
     }
@@ -343,5 +343,5 @@ export default function ProductsPage() {
       )}
     </>
   );
-
+}
     
