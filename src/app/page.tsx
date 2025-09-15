@@ -8,12 +8,16 @@ import Image from 'next/image';
 import { getProducts, Product } from '@/lib/db';
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/hooks/use-cart";
+import { CartSheet } from "@/components/cart/cart-sheet";
+
 
 function ProductCard({ product }: { product: Product }) {
   const { toast } = useToast();
+  const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    // TODO: Implement cart logic
+    addToCart(product);
     toast({
       title: "Added to Cart",
       description: `${product.name} has been added to your cart.`,
@@ -55,6 +59,7 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -86,10 +91,7 @@ export default function Home() {
             <span className="text-2xl font-bold font-headline text-foreground">BookHaven</span>
           </Link>
           <div className="flex items-center gap-4">
-             <Button variant="ghost">
-              <ShoppingCart className="mr-2"/>
-              Cart (0)
-            </Button>
+            <CartSheet />
             <Button asChild variant="outline">
               <Link href="/admin/login">Admin Login</Link>
             </Button>
@@ -117,8 +119,10 @@ export default function Home() {
               Explore our curated collection of classics, bestsellers, and hidden gems.
             </p>
             <div className="mt-8">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6">
-                Explore Collection <ArrowRight className="ml-2" />
+              <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6">
+                <Link href="#books">
+                  Explore Collection <ArrowRight className="ml-2" />
+                </Link>
               </Button>
             </div>
           </div>
