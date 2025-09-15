@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
 import { CartSheet } from "@/components/cart/cart-sheet";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 
 function ProductCard({ product }: { product: Product }) {
@@ -25,25 +26,26 @@ function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group">
+    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group h-full flex flex-col">
       <div className="relative">
         <Image
           src={product.images?.[0] || 'https://picsum.photos/seed/1/600/400'}
           alt={product.name}
           width={600}
           height={400}
-          className="object-cover w-full h-64 transition-transform duration-300 group-hover:scale-105"
+          className="object-cover w-full h-56 transition-transform duration-300 group-hover:scale-105"
           data-ai-hint="book cover"
         />
       </div>
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex flex-col flex-grow">
         <h3 className="text-lg font-bold font-headline text-foreground truncate">{product.name}</h3>
         <p className="text-sm text-muted-foreground mt-1">{product.author}</p>
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between mt-auto pt-4">
           <p className="text-xl font-semibold text-primary">${product.price.toFixed(2)}</p>
           <Button 
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
+            size="sm"
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
             {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
@@ -138,11 +140,25 @@ export default function Home() {
                 {isLoading ? (
                   <div className="text-center text-muted-foreground">Loading books...</div>
                 ) : products.length > 0 ? (
-                  <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {products.map(product => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
+                  <Carousel
+                    opts={{
+                      align: "start",
+                      loop: true,
+                    }}
+                    className="w-full"
+                  >
+                    <CarouselContent>
+                      {products.map((product) => (
+                        <CarouselItem key={product.id} className="sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                          <div className="p-1 h-full">
+                             <ProductCard product={product} />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="hidden sm:flex" />
+                    <CarouselNext className="hidden sm:flex" />
+                  </Carousel>
                 ) : (
                   <div className="text-center text-muted-foreground italic col-span-full py-10">
                       No books have been added yet. Check back soon!
