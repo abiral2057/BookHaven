@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -41,6 +41,14 @@ const categorySchema = z.object({
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
+const defaultCategories = [
+    { name: 'Fiction', description: 'Imaginative narrative, rather than history or fact.' },
+    { name: 'Science Fiction', description: 'Fiction based on imagined future scientific or technological advances.' },
+    { name: 'Mystery', description: 'Fiction dealing with the solution of a crime or the unraveling of secrets.' },
+    { name: 'Biography', description: 'An account of someone\'s life written by someone else.' },
+    { name: 'History', description: 'The study of past events, particularly in human affairs.' },
+];
+
 export default function CategoriesPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -53,13 +61,29 @@ export default function CategoriesPage() {
       description: "",
     },
   });
+  
+  const seeded = useRef(false);
 
   const fetchCategories = async () => {
     try {
       setIsLoading(true);
       const fetchedCategories = await getCategories();
-      setCategories(fetchedCategories);
+      
+      if (fetchedCategories.length === 0 && !seeded.current) {
+        seeded.current = true; // Prevents re-seeding
+        await Promise.all(defaultCategories.map(cat => addCategory(cat)));
+        const newCategories = await getCategories();
+        setCategories(newCategories);
+         toast({
+          title: "Sample Categories Added",
+          description: "A few example categories have been added to your database.",
+        });
+      } else {
+        setCategories(fetchedCategories);
+      }
+
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
