@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart, type CartItem } from "@/hooks/use-cart";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { Book } from 'lucide-react';
 import { addOrder } from "@/lib/db";
+import { useEffect } from "react";
 
 const shippingSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -56,15 +58,24 @@ function OrderSummaryItem({ item }: { item: CartItem }) {
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ShippingFormValues>({
     resolver: zodResolver(shippingSchema),
   });
+  
+  useEffect(() => {
+    if (user) {
+      setValue('name', user.displayName || '');
+      setValue('email', user.email || '');
+    }
+  }, [user, setValue]);
 
   const onSubmit: SubmitHandler<ShippingFormValues> = async (data) => {
     if (cartItems.length === 0) {
@@ -84,6 +95,7 @@ export default function CheckoutPage() {
         },
         items: cartItems,
         total: cartTotal,
+        userId: user?.uid, // Associate order with logged-in user
       });
 
       toast({

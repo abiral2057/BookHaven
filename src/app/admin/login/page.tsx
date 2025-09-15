@@ -17,14 +17,18 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function AdminLoginPage() {
-    const { user, signInWithGoogle, loading } = useAuth();
+    const { user, isAdmin, signInWithGoogle, loading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
         if (!loading && user) {
-            router.push('/admin/dashboard');
+            if (isAdmin) {
+                router.push('/admin/dashboard');
+            } else {
+                router.push('/dashboard');
+            }
         }
-    }, [user, loading, router]);
+    }, [user, isAdmin, loading, router]);
     
     if(loading || (!loading && user)) {
         return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
@@ -37,8 +41,8 @@ export default function AdminLoginPage() {
                     <div className="mx-auto mb-4 flex items-center justify-center h-16 w-16 rounded-full bg-primary/10">
                         <Book className="h-8 w-8 text-primary" />
                     </div>
-                    <CardTitle className="text-3xl font-bold font-headline">BookHaven Admin</CardTitle>
-                    <CardDescription>Sign in to manage your bookstore</CardDescription>
+                    <CardTitle className="text-3xl font-bold font-headline">BookHaven</CardTitle>
+                    <CardDescription>Sign in to continue</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">

@@ -2,15 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
-import { Book, ArrowRight, ShoppingCart } from 'lucide-react';
+import { Book, ArrowRight, ShoppingCart, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product } from '@/lib/db';
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
+import { useAuth } from "@/hooks/use-auth";
 import { CartSheet } from "@/components/cart/cart-sheet";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 function ProductCard({ product }: { product: Product }) {
@@ -56,13 +66,61 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
+function UserButton() {
+    const { user, signInWithGoogle, logout } = useAuth();
+
+    const getInitials = (name: string | null | undefined) => {
+        if (!name) return "??";
+        const names = name.split(' ');
+        if (names.length > 1) {
+            return `${names[0][0]}${names[1][0]}`.toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    }
+
+    if (!user) {
+        return <Button onClick={signInWithGoogle} variant="outline">Login</Button>;
+    }
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`} alt={user.displayName || "User"} />
+                        <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/dashboard">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>My Account</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                    <span>Log out</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -94,9 +152,7 @@ export default function Home() {
           </Link>
           <div className="flex items-center gap-4">
             <CartSheet />
-            <Button asChild variant="outline">
-              <Link href="/admin/login">Admin Login</Link>
-            </Button>
+            <UserButton />
           </div>
         </div>
       </header>

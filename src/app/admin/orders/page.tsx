@@ -3,10 +3,28 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getOrders, type Order } from '@/lib/db';
+import { getOrders, updateOrderStatus, type Order } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal } from 'lucide-react';
+
+const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
+  Pending: 'default',
+  Confirmed: 'secondary',
+  Shipping: 'secondary',
+  Delivered: 'outline',
+  Refunded: 'destructive',
+};
+
+const statuses: Order['status'][] = ["Pending", "Confirmed", "Shipping", "Delivered", "Refunded"];
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -33,17 +51,30 @@ export default function OrdersPage() {
     fetchOrders();
   }, [toast]);
 
-  const getStatusVariant = (status: Order['status']) => {
-    switch (status) {
-      case 'Pending':
-        return 'default';
-      case 'Shipped':
-        return 'secondary';
-      case 'Delivered':
-        return 'outline';
-      default:
-        return 'default';
+  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      await updateOrderStatus(orderId, newStatus);
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+      toast({
+        title: "Success",
+        description: `Order status updated to ${newStatus}.`
+      });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update order status.",
+      });
     }
+  };
+
+  const getStatusVariant = (status: Order['status']) => {
+     return statusVariants[status] || 'default';
   };
 
   return (
@@ -69,6 +100,7 @@ export default function OrdersPage() {
                   <TableHead>Items</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -85,6 +117,27 @@ export default function OrdersPage() {
                     <TableCell>₹{order.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                    </TableCell>
+                     <TableCell className="text-right">
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {statuses.map(status => (
+                            <DropdownMenuItem 
+                              key={status} 
+                              onClick={() => handleStatusChange(order.id, status)}
+                              disabled={order.status === status}
+                            >
+                              Mark as {status}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

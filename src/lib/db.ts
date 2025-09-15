@@ -11,6 +11,7 @@ import {
   orderBy,
   where,
   limit,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { CartItem } from "@/hooks/use-cart";
@@ -59,8 +60,9 @@ export interface Order {
   };
   items: CartItem[];
   total: number;
-  status: "Pending" | "Shipped" | "Delivered";
+  status: "Pending" | "Confirmed" | "Shipping" | "Delivered" | "Refunded";
   createdAt: Date;
+  userId?: string; // To associate order with a user
 }
 
 
@@ -219,3 +221,37 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
         throw new Error("Could not get orders");
     }
 }
+
+export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
+    try {
+        const ordersRef = collection(db, "orders");
+        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+
+        const querySnapshot = await getDocs(q);
+        const orders: Order[] = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const createdAt = (data.createdAt as Timestamp)?.toDate ? (data.createdAt as Timestamp).toDate() : new Date();
+            orders.push({ 
+                id: doc.id, 
+                ...data,
+                createdAt: createdAt
+            } as Order);
+        });
+        return orders;
+    } catch (e) {
+        console.error("Error getting user orders: ", e);
+        throw new Error("Could not get user orders");
+    }
+}
+
+
+export const updateOrderStatus = async (orderId: string, status: Order['status']): Promise<void> => {
+    try {
+        const orderRef = doc(db, "orders", orderId);
+        await updateDoc(orderRef, { status });
+    } catch (e) {
+        console.error("Error updating order status: ", e);
+        throw new Error("Could not update order status");
+    }
+};
