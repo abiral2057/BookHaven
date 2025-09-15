@@ -7,13 +7,14 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetFooter,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart, type CartItem } from "@/hooks/use-cart";
-import { ShoppingCart, Trash2, Plus, Minus, X } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import Link from 'next/link';
 
 function CartItem({ item }: { item: CartItem }) {
   const { updateQuantity, removeFromCart } = useCart();
@@ -31,7 +32,7 @@ function CartItem({ item }: { item: CartItem }) {
       <div className="flex-1">
         <h4 className="font-semibold text-sm">{item.name}</h4>
         <p className="text-xs text-muted-foreground">{item.author}</p>
-        <p className="text-sm font-medium mt-1">${item.price.toFixed(2)}</p>
+        <p className="text-sm font-medium mt-1">₹{item.price.toFixed(2)}</p>
         <div className="flex items-center gap-2 mt-2">
           <Button
             variant="outline"
@@ -93,11 +94,13 @@ export function CartSheet() {
               <div className="w-full space-y-4">
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Subtotal</span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
-                <Button className="w-full" size="lg">
-                  Proceed to Checkout
-                </Button>
+                <SheetClose asChild>
+                  <Button asChild className="w-full" size="lg">
+                    <Link href="/checkout">Proceed to Checkout</Link>
+                  </Button>
+                </SheetClose>
               </div>
             </SheetFooter>
           </>

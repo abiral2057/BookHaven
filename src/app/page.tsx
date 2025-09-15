@@ -41,7 +41,7 @@ function ProductCard({ product }: { product: Product }) {
         <h3 className="text-lg font-bold font-headline text-foreground truncate">{product.name}</h3>
         <p className="text-sm text-muted-foreground mt-1">{product.author}</p>
         <div className="flex items-center justify-between mt-auto pt-4">
-          <p className="text-xl font-semibold text-primary">${product.price.toFixed(2)}</p>
+          <p className="text-xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
           <Button 
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
