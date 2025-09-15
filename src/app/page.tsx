@@ -143,13 +143,12 @@ export default function Home() {
                   <Carousel
                     opts={{
                       align: "start",
-                      loop: true,
                     }}
                     className="w-full"
                   >
                     <CarouselContent>
                       {products.map((product) => (
-                        <CarouselItem key={product.id} className="sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                        <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3">
                           <div className="p-1 h-full">
                              <ProductCard product={product} />
                           </div>
