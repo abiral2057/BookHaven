@@ -44,7 +44,8 @@ function RelatedProductCard({ product }: { product: Product }) {
 }
 
 
-export default function ProductPage({ params: { id } }: { params: { id: string } }) {
+export default function ProductPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -292,7 +293,7 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
         </div>
         
         {/* Reviews Section */}
-        <ProductReviews productId={product.id} reviews={reviews} onNewReview={handleNewReview} />
+        <ProductReviews productId={id} reviews={reviews} onNewReview={handleNewReview} />
 
 
         {/* Related Products */}
@@ -310,3 +311,5 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
     </>
   );
 }
+
+    
