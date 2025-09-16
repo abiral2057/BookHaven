@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useCart, type CartItem } from "@/hooks/use-cart";
@@ -142,68 +143,68 @@ export default function CheckoutPage() {
         <h1 className="text-center text-4xl font-bold font-headline mb-12">
           Checkout
         </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Shipping Form */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" {...register("name")} />
-                    {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" {...register("email")} />
-                     {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input id="address" {...register("address")} />
-                     {errors.address && <p className="text-destructive text-sm">{errors.address.message}</p>}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+        <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Shipping Form */}
+            <div>
+                <Card>
+                <CardHeader>
+                    <CardTitle>Shipping Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input id="city" {...register("city")} />
-                       {errors.city && <p className="text-destructive text-sm">{errors.city.message}</p>}
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input id="name" {...register("name")} />
+                        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="postalCode">Postal Code</Label>
-                      <Input id="postalCode" {...register("postalCode")} />
-                       {errors.postalCode && <p className="text-destructive text-sm">{errors.postalCode.message}</p>}
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" {...register("email")} />
+                        {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
                     </div>
-                  </div>
-                   <Button type="submit" form="checkout-form" className="w-full mt-6" size="lg" disabled={isSubmitting}>
-                    {isSubmitting ? "Placing Order..." : "Place Order"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="address">Address</Label>
+                        <Input id="address" {...register("address")} />
+                        {errors.address && <p className="text-destructive text-sm">{errors.address.message}</p>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                        <Label htmlFor="city">City</Label>
+                        <Input id="city" {...register("city")} />
+                        {errors.city && <p className="text-destructive text-sm">{errors.city.message}</p>}
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="postalCode">Postal Code</Label>
+                        <Input id="postalCode" {...register("postalCode")} />
+                        {errors.postalCode && <p className="text-destructive text-sm">{errors.postalCode.message}</p>}
+                        </div>
+                    </div>
+                </CardContent>
+                </Card>
+            </div>
 
-          {/* Order Summary */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {cartItems.map((item) => (
-                  <OrderSummaryItem key={item.id} item={item} />
-                ))}
-              </CardContent>
-              <CardFooter className="flex justify-between items-center text-xl font-bold border-t pt-6">
-                <p>Total</p>
-                <p>₹{cartTotal.toFixed(2)}</p>
-              </CardFooter>
-            </Card>
-          </div>
-        </div>
+            {/* Order Summary */}
+            <div>
+                <Card>
+                <CardHeader>
+                    <CardTitle>Order Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {cartItems.map((item) => (
+                    <OrderSummaryItem key={item.id} item={item} />
+                    ))}
+                </CardContent>
+                <CardFooter className="flex justify-between items-center text-xl font-bold border-t pt-6">
+                    <p>Total</p>
+                    <p>₹{cartTotal.toFixed(2)}</p>
+                </CardFooter>
+                </Card>
+            </div>
+            </div>
+            <Button type="submit" form="checkout-form" className="w-full mt-6" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? "Placing Order..." : "Place Order"}
+            </Button>
+        </form>
       </div>
     </>
   );
