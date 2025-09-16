@@ -71,16 +71,17 @@ const productSchema = z.object({
   stock: z.coerce.number().min(0, "Stock must be a positive number"),
   imageUrl: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
   category: z.string().min(1, "Please select a category"),
+  isbn: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
 const defaultProducts = [
-    { name: 'To Kill a Mockingbird', author: 'Harper Lee', description: 'A novel about the serious issues of rape and racial inequality.', price: 12.99, stock: 50, category: 'Fiction' },
-    { name: '1984', author: 'George Orwell', description: 'A dystopian social science fiction novel and cautionary tale.', price: 10.99, stock: 30, category: 'Science Fiction' },
-    { name: 'The Great Gatsby', author: 'F. Scott Fitzgerald', description: 'A novel about the American dream and its corruption.', price: 14.00, stock: 45, category: 'Fiction' },
-    { name: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', description: 'A book that surveys the history of humankind.', price: 22.50, stock: 25, category: 'History' },
-    { name: 'The Hobbit', author: 'J.R.R. Tolkien', description: 'A fantasy novel and children\'s book about the quest of hobbit Bilbo Baggins.', price: 18.00, stock: 60, category: 'Science Fiction' },
+    { name: 'To Kill a Mockingbird', author: 'Harper Lee', description: 'A novel about the serious issues of rape and racial inequality.', price: 12.99, stock: 50, category: 'Fiction', isbn: '978-0-06-112008-4' },
+    { name: '1984', author: 'George Orwell', description: 'A dystopian social science fiction novel and cautionary tale.', price: 10.99, stock: 30, category: 'Science Fiction', isbn: '978-0-452-28423-4' },
+    { name: 'The Great Gatsby', author: 'F. Scott Fitzgerald', description: 'A novel about the American dream and its corruption.', price: 14.00, stock: 45, category: 'Fiction', isbn: '978-0-7432-7356-5' },
+    { name: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', description: 'A book that surveys the history of humankind.', price: 22.50, stock: 25, category: 'History', isbn: '978-0-06-231609-7' },
+    { name: 'The Hobbit', author: 'J.R.R. Tolkien', description: 'A fantasy novel and children\'s book about the quest of hobbit Bilbo Baggins.', price: 18.00, stock: 60, category: 'Science Fiction', isbn: '978-0-345-33968-3' },
 ];
 
 
@@ -106,6 +107,7 @@ export default function ProductsPage() {
       stock: 0,
       imageUrl: "",
       category: "",
+      isbn: "",
     },
   });
 
@@ -258,6 +260,7 @@ export default function ProductsPage() {
       stock: product.stock,
       imageUrl: product.images?.[0] || '',
       category: product.category,
+      isbn: product.isbn || '',
     });
   };
 
@@ -395,31 +398,46 @@ export default function ProductsPage() {
                     </FormItem>
                   )}
                 />
-                 <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                             {categories.length === 0 && <p className="p-4 text-sm text-muted-foreground">No categories found. Please add one on the Categories page.</p>}
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {categories.length === 0 && <p className="p-4 text-sm text-muted-foreground">No categories found. Please add one on the Categories page.</p>}
+                                {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id}>
+                                    {category.name}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="isbn"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>ISBN</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g. 978-3-16-148410-0" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <FormField
                     control={form.control}

@@ -28,6 +28,7 @@ export interface Product {
   stock: number;
   category: string;
   images: string[];
+  isbn?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

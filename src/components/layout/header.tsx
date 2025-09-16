@@ -5,7 +5,7 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from '@/components/ui/button';
 import { CartSheet } from "@/components/cart/cart-sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -93,6 +93,8 @@ function UserButton() {
 export function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { wishlist } = useWishlist();
+  const wishlistCount = wishlist.length;
 
   const navItems = [
     { href: '/', label: 'Home'},
@@ -129,9 +131,14 @@ export function Header() {
             </nav>
             <div className="flex items-center gap-2 md:gap-4">
               <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild className="relative">
                     <Link href="/wishlist">
                         <Heart />
+                        {wishlistCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                            {wishlistCount}
+                          </span>
+                        )}
                         <span className="sr-only">Wishlist</span>
                     </Link>
                 </Button>
@@ -140,9 +147,14 @@ export function Header() {
               </div>
               <ThemeToggle />
               <div className="md:hidden flex items-center gap-1">
-                 <Button variant="ghost" size="icon" asChild>
+                 <Button variant="ghost" size="icon" asChild className="relative">
                     <Link href="/wishlist">
                         <Heart className="h-6 w-6" />
+                         {wishlistCount > 0 && (
+                          <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                            {wishlistCount}
+                          </span>
+                        )}
                     </Link>
                 </Button>
                  <CartSheet />
