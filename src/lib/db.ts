@@ -432,7 +432,7 @@ export const addReview = async (review: ReviewInput): Promise<string> => {
 export const getReviewsByProductId = async (productId: string): Promise<Review[]> => {
   try {
     const reviewsRef = collection(db, "reviews");
-    const q = query(reviewsRef, where("productId", "==", productId), orderBy("createdAt", "desc"));
+    const q = query(reviewsRef, where("productId", "==", productId));
     const querySnapshot = await getDocs(q);
     const reviews: Review[] = [];
     querySnapshot.forEach((doc) => {
@@ -444,6 +444,10 @@ export const getReviewsByProductId = async (productId: string): Promise<Review[]
           createdAt: createdAtRaw?.toDate() ?? new Date(),
       } as Review);
     });
+    
+    // Sort reviews by date descending locally
+    reviews.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
     return reviews;
   } catch (e) {
     console.error("Error getting reviews: ", e);
