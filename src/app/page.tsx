@@ -112,7 +112,7 @@ function UserButton() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href={isAdmin ? "/admin/dashboard" : "/dashboard"}>
+                    <Link href={"/dashboard"}>
                         <User className="mr-2 h-4 w-4" />
                         <span>My Account</span>
                     </Link>

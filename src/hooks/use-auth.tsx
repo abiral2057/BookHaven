@@ -16,7 +16,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_UID = process.env.NEXT_PUBLIC_ADMIN_UID;
 const ADMIN_USERNAME = "abiral";
 const ADMIN_PASSWORD = "abiral";
 
@@ -43,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const isAdmin = (user && ADMIN_UID && user.uid === ADMIN_UID) || simpleAdmin;
+  const isAdmin = simpleAdmin;
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
