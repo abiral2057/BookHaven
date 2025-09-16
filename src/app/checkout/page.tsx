@@ -63,7 +63,7 @@ function OrderSummaryItem({ item, onRemove }: { item: CartItem, onRemove: (id: s
 }
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, clearCart, removeFromCart } = useCart();
+  const { cartItems, cartTotal, setLastOrderItemsAndClearCart, removeFromCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -121,7 +121,7 @@ export default function CheckoutPage() {
         description: "Thank you for your purchase.",
       });
 
-      clearCart();
+      setLastOrderItemsAndClearCart(cartItems);
       router.push("/order-confirmation");
 
     } catch (error) {
