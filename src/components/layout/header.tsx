@@ -17,8 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Book, LogOut, ShieldCheck, User } from 'lucide-react';
+import { Book, LogOut, ShieldCheck, User, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 function UserButton() {
     const { user, signInWithGoogle, logout, loading } = useAuth();
@@ -89,39 +90,92 @@ function UserButton() {
 
 export function Header() {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const navItems = [
     { href: '/', label: 'Home'},
     { href: '/shop', label: 'Shop'},
     { href: '/about', label: 'About'},
   ]
 
+  useEffect(() => {
+    // Close mobile menu on route change
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   return (
-      <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-2">
-            <Book className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">BookHaven</span>
-          </Link>
-          <nav className="hidden md:flex gap-6 items-center">
-             {navItems.map((item) => (
-                 <Link 
+      <>
+        <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-sm z-40">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <Link href="/" className="flex items-center gap-2">
+              <Book className="h-8 w-8 text-primary" />
+              <span className="text-2xl font-bold text-foreground">BookHaven</span>
+            </Link>
+            <nav className="hidden md:flex gap-6 items-center">
+              {navItems.map((item) => (
+                  <Link 
+                      key={item.label}
+                      href={item.href} 
+                      className={cn(
+                          "text-sm font-medium transition-colors",
+                          pathname === item.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                      )}
+                  >
+                      {item.label}
+                  </Link>
+              ))}
+            </nav>
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="hidden md:flex items-center gap-2">
+                <CartSheet />
+                <UserButton />
+              </div>
+              <ThemeToggle />
+              <div className="md:hidden">
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Mobile Menu */}
+        <div 
+          className={cn(
+            "fixed inset-0 z-50 bg-background/95 backdrop-blur-sm md:hidden",
+            "transition-opacity duration-300 ease-in-out",
+            isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+        >
+          <div className="p-4 flex justify-between items-center">
+            <Link href="/" className="flex items-center gap-2">
+              <Book className="h-8 w-8 text-primary" />
+              <span className="text-2xl font-bold text-foreground">BookHaven</span>
+            </Link>
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+          <nav className="flex flex-col items-center justify-center gap-6 mt-16 text-center">
+            {navItems.map((item) => (
+                <Link 
                     key={item.label}
                     href={item.href} 
                     className={cn(
-                        "text-sm font-medium transition-colors",
+                        "text-2xl font-medium transition-colors",
                         pathname === item.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                     )}
-                 >
+                >
                     {item.label}
                 </Link>
             ))}
+             <div className="mt-8 flex flex-col items-center gap-4 w-full px-8">
+                <CartSheet />
+                <UserButton />
+             </div>
           </nav>
-          <div className="flex items-center gap-4">
-            <CartSheet />
-            <UserButton />
-            <ThemeToggle />
-          </div>
         </div>
-      </header>
+      </>
   );
 }

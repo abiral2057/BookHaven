@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -72,9 +73,14 @@ export function CartSheet() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost">
-          <ShoppingCart className="mr-2" />
-          Cart ({cartCount})
+        <Button variant="ghost" className="relative">
+          <ShoppingCart />
+          {cartCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              {cartCount}
+            </span>
+          )}
+           <span className="sr-only">Open Cart</span>
         </Button>
       </SheetTrigger>
       <SheetContent className="flex flex-col">
@@ -84,7 +90,7 @@ export function CartSheet() {
         {cartCount > 0 ? (
           <>
             <ScrollArea className="flex-1 -mx-6">
-              <div className="px-6">
+              <div className="px-6 divide-y divide-border">
                 {cartItems.map((item) => (
                   <CartItem key={item.id} item={item} />
                 ))}
@@ -111,6 +117,11 @@ export function CartSheet() {
             <p className="mt-1 text-sm text-muted-foreground">
               Add some books to get started.
             </p>
+             <SheetClose asChild>
+                <Button asChild className="mt-6">
+                    <Link href="/shop">Continue Shopping</Link>
+                </Button>
+            </SheetClose>
           </div>
         )}
       </SheetContent>

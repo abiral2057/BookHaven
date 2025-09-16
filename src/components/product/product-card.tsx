@@ -25,28 +25,27 @@ export function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <Link href={`/products/${product.id}`} className="block h-full">
-      <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-lg hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 group h-full flex flex-col">
-        <div className="relative bg-muted/20">
+    <Link href={`/products/${product.id}`} className="block h-full group">
+      <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-sm hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 h-full flex flex-col">
+        <div className="relative bg-muted/20 aspect-[2/3] w-full">
           <Image
             src={product.images?.[0] || 'https://picsum.photos/seed/1/400/600'}
             alt={product.name}
-            width={400}
-            height={600}
-            className="object-contain w-full h-48 transition-transform duration-300 group-hover:scale-105"
+            fill
+            className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105 p-4"
             data-ai-hint="book cover"
           />
         </div>
-        <CardContent className="p-4 flex flex-col flex-grow">
-          <h3 className="text-base font-bold text-foreground truncate">{product.name}</h3>
+        <CardContent className="p-3 md:p-4 flex flex-col flex-grow">
+          <h3 className="text-sm md:text-base font-bold text-foreground truncate">{product.name}</h3>
           <p className="text-xs text-muted-foreground mt-1">{product.author}</p>
-          <div className="flex items-center justify-between mt-auto pt-4">
-            <p className="text-lg font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mt-auto pt-2">
+            <p className="text-base md:text-lg font-semibold text-primary mb-2 md:mb-0">₹{product.price.toFixed(2)}</p>
             <Button 
               onClick={handleAddToCart}
               disabled={product.stock <= 0}
               size="sm"
-              className="bg-primary/90 hover:bg-primary text-primary-foreground"
+              className="bg-primary/90 hover:bg-primary text-primary-foreground text-xs"
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
               {product.stock > 0 ? "Add" : "Out of Stock"}

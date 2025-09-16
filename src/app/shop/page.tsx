@@ -33,7 +33,7 @@ export default function ShopPage() {
           getCategories(),
         ]);
         setProducts(fetchedProducts);
-        setCategories(fetchedCategories);
+        setCategories(fetchedCategories.sort((a, b) => a.name.localeCompare(b.name)));
 
         if (fetchedProducts.length > 0) {
             const topPrice = Math.ceil(Math.max(...fetchedProducts.map(p => p.price)));
@@ -111,8 +111,8 @@ export default function ShopPage() {
 
                 {/* Price Filter */}
                 <div>
-                    <Label htmlFor="price" className="text-lg font-semibold">Price</Label>
-                     <div className="flex justify-between items-center mt-2">
+                    <Label htmlFor="price" className="text-lg font-semibold">Max Price</Label>
+                     <div className="flex justify-between items-center mt-2 font-medium">
                         <span>₹0</span>
                         <span>₹{priceRange[0]}</span>
                     </div>
@@ -144,6 +144,7 @@ export default function ShopPage() {
                    <Button 
                       variant={!selectedCategory ? 'secondary' : 'outline'}
                       onClick={() => setSelectedCategory(null)}
+                      className="rounded-full"
                     >
                       All
                     </Button>
@@ -152,6 +153,7 @@ export default function ShopPage() {
                       key={category.id} 
                       variant={selectedCategory === category.id ? 'secondary' : 'outline'}
                       onClick={() => setSelectedCategory(category.id)}
+                      className="rounded-full"
                     >
                       {category.name}
                     </Button>
@@ -163,14 +165,14 @@ export default function ShopPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {Array.from({ length: 9 }).map((_, i) => (
                      <div key={i} className="bg-card/50 p-4 rounded-lg animate-pulse">
-                        <div className="bg-muted h-48 w-full rounded-md"></div>
+                        <div className="bg-muted h-60 w-full rounded-md"></div>
                         <div className="mt-4 h-6 w-3/4 bg-muted rounded"></div>
                         <div className="mt-2 h-4 w-1/2 bg-muted rounded"></div>
                      </div>
                   ))}
                 </div>
               ) : filteredProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                   {filteredProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
