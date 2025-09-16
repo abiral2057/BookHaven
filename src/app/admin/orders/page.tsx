@@ -106,7 +106,7 @@ export default function OrdersPage() {
             <div className="text-center py-12 p-6">Loading orders...</div>
           ) : orders.length > 0 ? (
             <Table>
-              <TableHeader>
+              <TableHeader className="hidden md:table-header-group">
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Customer</TableHead>
@@ -118,20 +118,27 @@ export default function OrdersPage() {
               </TableHeader>
               <TableBody>
                 {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                      {order.createdAt ? format(order.createdAt, 'PPpp') : 'N/A'}
+                  <TableRow key={order.id} className="grid grid-cols-3 p-4 gap-4 md:table-row md:p-0 md:grid-cols-none">
+                    <TableCell className="p-0 col-span-2 space-y-1 md:table-cell md:w-[180px]">
+                      <p className="font-medium md:font-normal">{order.createdAt ? format(order.createdAt, 'PPpp') : 'N/A'}</p>
                     </TableCell>
-                    <TableCell>
-                      <div>{order.customer.name}</div>
-                      <div className="text-xs text-muted-foreground">{order.customer.email}</div>
+
+                    <TableCell className="p-0 col-span-3 space-y-1 md:table-cell">
+                      <p className="font-medium md:font-normal">{order.customer.name}</p>
+                      <p className="text-sm text-muted-foreground">{order.customer.email}</p>
                     </TableCell>
-                    <TableCell>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
-                    <TableCell>रु{order.total.toFixed(2)}</TableCell>
-                    <TableCell>
+
+                    <TableCell className="hidden md:table-cell">{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
+                    
+                    <TableCell className="p-0 col-span-1 md:table-cell">
+                        <p className="font-bold">रु{order.total.toFixed(2)}</p>
+                    </TableCell>
+
+                    <TableCell className="p-0 col-span-1 md:table-cell">
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                     </TableCell>
-                     <TableCell className="text-right">
+                    
+                    <TableCell className="p-0 col-span-1 flex justify-end items-center md:table-cell md:text-right">
                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0">
