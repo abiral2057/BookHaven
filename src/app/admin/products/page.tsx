@@ -29,9 +29,9 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { addProduct, getProducts, Product, getCategories, Category } from "@/lib/db";
+import { addProduct, getProducts, Product, getCategories, Category, updateProduct, deleteProduct } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Book, BookOpen, Sparkles, Loader2 } from "lucide-react";
+import { PlusCircle, Book, BookOpen, Sparkles, Loader2, MoreHorizontal, Edit, Trash } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -40,6 +40,23 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import { checkDbConnection } from "@/lib/firebase";
 import { generateProductDescription } from "@/ai/flows/product-description-generator";
@@ -66,11 +83,14 @@ const defaultProducts = [
 
 
 export default function ProductsPage() {
-  const [isAdding, setIsAdding] = useState(false);
+  const [formMode, setFormMode] = useState<"hidden" | "add" | "edit">("hidden");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
   const { toast } = useToast();
   const seeded = useRef(false);
   
@@ -87,8 +107,30 @@ export default function ProductsPage() {
     },
   });
 
+  const fetchAllData = async () => {
+      try {
+        const [fetchedProducts, fetchedCategories] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
+         setProducts(fetchedProducts);
+         setCategories(fetchedCategories);
+         return { fetchedProducts, fetchedCategories };
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch data. Please ensure Firestore rules are correct.",
+        });
+        console.error("Error fetching data:", error);
+        return { fetchedProducts: [], fetchedCategories: [] };
+      }
+  };
+
+
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       const { ready, error } = await checkDbConnection();
       if (!ready) {
         toast({
@@ -100,53 +142,34 @@ export default function ProductsPage() {
         return;
       }
 
-      try {
-        const [fetchedProducts, fetchedCategories] = await Promise.all([
-          getProducts(),
-          getCategories(),
-        ]);
+      const { fetchedProducts, fetchedCategories } = await fetchAllData();
+      
+      if (fetchedProducts.length === 0 && !seeded.current && fetchedCategories.length > 0) {
+          seeded.current = true;
+          toast({
+              title: "No Books Found",
+              description: "Seeding your database with some sample books...",
+          });
 
-        if (fetchedProducts.length === 0 && !seeded.current && fetchedCategories.length > 0) {
-            seeded.current = true;
-            toast({
-                title: "No Books Found",
-                description: "Seeding your database with some sample books...",
-            });
+          const categoryMap = fetchedCategories.reduce((acc, cat) => {
+              acc[cat.name] = cat.id;
+              return acc;
+          }, {} as Record<string, string>);
 
-            const categoryMap = fetchedCategories.reduce((acc, cat) => {
-                acc[cat.name] = cat.id;
-                return acc;
-            }, {} as Record<string, string>);
+          await Promise.all(defaultProducts.map(p => addProduct({
+              ...p,
+              category: categoryMap[p.category],
+              images: [`https://picsum.photos/seed/${p.name.replace(/\s/g, '-')}/400/600`],
+          })));
+          
+          await fetchAllData();
 
-            await Promise.all(defaultProducts.map(p => addProduct({
-                ...p,
-                category: categoryMap[p.category],
-                images: [`https://picsum.photos/seed/${p.name.replace(/\s/g, '-')}/400/600`],
-            })));
-            
-            const newProducts = await getProducts();
-            setProducts(newProducts);
-
-             toast({
-                title: "Sample Books Added!",
-                description: "Your database now has some sample books.",
-            });
-
-        } else {
-            setProducts(fetchedProducts);
-        }
-        
-        setCategories(fetchedCategories);
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch data. Please ensure Firestore rules are correct.",
-        });
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
+           toast({
+              title: "Sample Books Added!",
+              description: "Your database now has some sample books.",
+          });
       }
+      setIsLoading(false);
     };
     
     fetchData();
@@ -191,32 +214,87 @@ export default function ProductsPage() {
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      await addProduct({
-        ...data,
-        images: data.imageUrl ? [data.imageUrl] : [],
-      });
-      toast({
-        title: "Success",
-        description: "Book added successfully.",
-      });
-      form.reset();
-      setIsAdding(false);
+      const productData = {
+          ...data,
+          images: data.imageUrl ? [data.imageUrl] : [],
+      };
+
+      if (formMode === 'edit' && editingProduct) {
+        await updateProduct(editingProduct.id, productData);
+        toast({ title: "Success", description: "Book updated successfully." });
+      } else {
+        await addProduct(productData);
+        toast({ title: "Success", description: "Book added successfully." });
+      }
       
-      // Refresh the product list
+      form.reset();
+      setFormMode("hidden");
+      setEditingProduct(null);
+      
       setIsLoading(true);
-      const newProducts = await getProducts();
-      setProducts(newProducts);
+      await fetchAllData();
       setIsLoading(false);
 
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add book. Your Firestore security rules may be blocking the operation.",
+        description: `Failed to ${formMode === 'edit' ? 'update' : 'add'} book. Your Firestore security rules may be blocking the operation.`,
       });
-      console.error("Error adding book:", error);
+      console.error(`Error ${formMode === 'edit' ? 'updating' : 'adding'} book:`, error);
     }
   };
+
+  const handleEditClick = (product: Product) => {
+    setEditingProduct(product);
+    setFormMode("edit");
+    form.reset({
+      name: product.name,
+      author: product.author,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      imageUrl: product.images?.[0] || '',
+      category: product.category,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!productToDelete) return;
+    try {
+      await deleteProduct(productToDelete.id);
+      setProducts(products.filter(p => p.id !== productToDelete.id));
+      toast({
+        title: "Success",
+        description: "Book deleted successfully."
+      });
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete book.",
+      });
+       console.error("Error deleting book:", error);
+    } finally {
+      setProductToDelete(null);
+    }
+  };
+
+  const openAddForm = () => {
+    form.reset();
+    setEditingProduct(null);
+    setFormMode("add");
+  };
+
+  const closeForm = () => {
+    setFormMode("hidden");
+    setEditingProduct(null);
+  };
+  
+  const formTitle = formMode === 'edit' ? "Edit Book" : "Add New Book";
+  const formDescription = formMode === 'edit' ? "Update the details of this book." : "Fill out the form below to add a new book to your store.";
+  const submitButtonText = formMode === 'edit' ? "Save Changes" : "Add Book";
+  const submittingButtonText = formMode === 'edit' ? "Saving..." : "Adding...";
 
   return (
     <>
@@ -227,21 +305,19 @@ export default function ProductsPage() {
             Manage your book inventory.
           </p>
         </div>
-        {!isAdding && (
-          <Button onClick={() => setIsAdding(true)}>
+        {formMode === 'hidden' && (
+          <Button onClick={openAddForm}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Book
           </Button>
         )}
       </div>
 
-      {isAdding ? (
+      {formMode !== 'hidden' ? (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Add New Book</CardTitle>
-            <CardDescription>
-              Fill out the form below to add a new book to your store.
-            </CardDescription>
+            <CardTitle>{formTitle}</CardTitle>
+            <CardDescription>{formDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -323,7 +399,7 @@ export default function ProductsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -374,12 +450,12 @@ export default function ProductsPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsAdding(false)}
+                    onClick={closeForm}
                   >
                     Cancel
                   </Button>
                   <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? "Adding..." : "Add Book"}
+                    {form.formState.isSubmitting ? submittingButtonText : submitButtonText}
                   </Button>
                 </div>
               </form>
@@ -407,6 +483,7 @@ export default function ProductsPage() {
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -432,6 +509,31 @@ export default function ProductsPage() {
                       <TableCell>₹{product.price.toFixed(2)}</TableCell>
                       <TableCell>{product.stock}</TableCell>
                       <TableCell>{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
+                      <TableCell className="text-right">
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEditClick(product)}>
+                                <Edit className="mr-2 h-4 w-4"/>
+                                Edit
+                              </DropdownMenuItem>
+                              <AlertDialogTrigger asChild>
+                                  <button
+                                    className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full"
+                                    onClick={() => setProductToDelete(product)}
+                                  >
+                                    <Trash className="mr-2 h-4 w-4 text-destructive" />
+                                    <span className="text-destructive">Delete</span>
+                                  </button>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -441,7 +543,7 @@ export default function ProductsPage() {
                 <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h3 className="mt-2 text-sm font-medium text-foreground">No books yet</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Get started by adding your first book.</p>
-                 <Button className="mt-6" onClick={() => setIsAdding(true)}>
+                 <Button className="mt-6" onClick={openAddForm}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Book
                   </Button>
@@ -450,6 +552,20 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       )}
+       <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the book &quot;{productToDelete?.name}&quot;. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setProductToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

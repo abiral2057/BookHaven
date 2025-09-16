@@ -13,6 +13,7 @@ import {
   where,
   limit,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 import type { CartItem } from "@/hooks/use-cart";
@@ -85,6 +86,30 @@ export const addProduct = async (product: ProductInput): Promise<string> => {
     throw new Error("Could not add product");
   }
 };
+
+export const updateProduct = async (id: string, product: ProductInput): Promise<void> => {
+    try {
+        const productRef = doc(db, "products", id);
+        await updateDoc(productRef, {
+            ...product,
+            updatedAt: serverTimestamp(),
+        });
+    } catch (e) {
+        console.error("Error updating document: ", e);
+        throw new Error("Could not update product");
+    }
+};
+
+export const deleteProduct = async (id: string): Promise<void> => {
+    try {
+        const productRef = doc(db, "products", id);
+        await deleteDoc(productRef);
+    } catch (e) {
+        console.error("Error deleting document: ", e);
+        throw new Error("Could not delete product");
+    }
+};
+
 
 export const getProducts = async (count?: number): Promise<Product[]> => {
   try {
@@ -264,7 +289,7 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, "orders");
-        const q = query(ordersRef, where("userId", "==", userId));
+        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
 
         const querySnapshot = await getDocs(q);
         const orders: Order[] = [];
