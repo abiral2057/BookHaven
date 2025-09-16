@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -40,7 +41,7 @@ export function ProductCard({ product }: { product: Product }) {
           <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
           <p className="text-xs text-muted-foreground mt-1 truncate">{product.author}</p>
           <div className="flex items-center justify-between mt-auto pt-2">
-            <p className="text-base font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+            <p className="text-base font-semibold text-primary">रु{product.price.toFixed(2)}</p>
             <Button 
               onClick={handleAddToCart}
               disabled={product.stock <= 0}

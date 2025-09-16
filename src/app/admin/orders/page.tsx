@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -126,7 +127,7 @@ export default function OrdersPage() {
                       <div className="text-xs text-muted-foreground">{order.customer.email}</div>
                     </TableCell>
                     <TableCell>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
-                    <TableCell>₹{order.total.toFixed(2)}</TableCell>
+                    <TableCell>रु{order.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                     </TableCell>

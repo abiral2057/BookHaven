@@ -51,7 +51,7 @@ function OrderSummaryItem({ item }: { item: CartItem }) {
         </p>
       </div>
       <p className="font-medium">
-        ₹{(item.price * item.quantity).toFixed(2)}
+        रु{(item.price * item.quantity).toFixed(2)}
       </p>
     </div>
   );
@@ -214,7 +214,7 @@ export default function CheckoutPage() {
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-xl font-bold border-t pt-6">
                     <p>Total</p>
-                    <p>₹{cartTotal.toFixed(2)}</p>
+                    <p>रु{cartTotal.toFixed(2)}</p>
                 </CardFooter>
                 </Card>
             </div>

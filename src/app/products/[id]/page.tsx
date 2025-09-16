@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -31,7 +32,7 @@ function RelatedProductCard({ product }: { product: Product }) {
         <CardContent className="p-3 flex flex-col flex-grow">
           <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
           <p className="text-xs text-muted-foreground mt-1 truncate">{product.author}</p>
-          <p className="text-base font-semibold text-primary mt-auto pt-2">₹{product.price.toFixed(2)}</p>
+          <p className="text-base font-semibold text-primary mt-auto pt-2">रु{product.price.toFixed(2)}</p>
         </CardContent>
       </Card>
     </Link>
@@ -149,7 +150,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{product.name}</h1>
             <p className="mt-2 text-xl text-muted-foreground">{product.author}</p>
             
-            <p className="mt-6 text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
+            <p className="mt-6 text-3xl font-bold text-primary">रु{product.price.toFixed(2)}</p>
 
             <div className="mt-6 text-lg text-foreground/80 prose prose-invert max-w-none">
                 <p>{product.description}</p>

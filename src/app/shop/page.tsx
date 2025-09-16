@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -112,8 +113,8 @@ export default function ShopPage() {
             Max Price
           </Label>
           <div className="flex justify-between items-center mt-2 font-medium">
-            <span>₹0</span>
-            <span>₹{priceRange[0]}</span>
+            <span>रु0</span>
+            <span>रु{priceRange[0]}</span>
           </div>
           <Slider
             id="price"

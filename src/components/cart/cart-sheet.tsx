@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -33,7 +34,7 @@ function CartItem({ item }: { item: CartItem }) {
       <div className="flex-1">
         <h4 className="font-semibold text-sm">{item.name}</h4>
         <p className="text-xs text-muted-foreground">{item.author}</p>
-        <p className="text-sm font-medium mt-1">₹{item.price.toFixed(2)}</p>
+        <p className="text-sm font-medium mt-1">रु{item.price.toFixed(2)}</p>
         <div className="flex items-center gap-2 mt-2">
           <Button
             variant="outline"
@@ -54,6 +55,7 @@ function CartItem({ item }: { item: CartItem }) {
             <Plus className="h-3 w-3" />
           </Button>
         </div>
+         <p className="text-xs text-muted-foreground mt-1">Stock: {item.stock}</p>
       </div>
       <Button
         variant="ghost"
@@ -100,7 +102,7 @@ export function CartSheet() {
               <div className="w-full space-y-4">
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Subtotal</span>
-                  <span>₹{cartTotal.toFixed(2)}</span>
+                  <span>रु{cartTotal.toFixed(2)}</span>
                 </div>
                 <SheetClose asChild>
                   <Button asChild className="w-full" size="lg">

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -508,7 +509,7 @@ export default function ProductsPage() {
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
                         <TableCell>{product.author}</TableCell>
-                        <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                        <TableCell>रु{product.price.toFixed(2)}</TableCell>
                         <TableCell>{product.stock}</TableCell>
                         <TableCell>{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
                         <TableCell className="text-right">

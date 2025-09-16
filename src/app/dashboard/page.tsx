@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -92,8 +93,8 @@ export default function CustomerDashboardPage() {
         item.name,
         item.author,
         item.quantity,
-        `₹${item.price.toFixed(2)}`,
-        `₹${(item.price * item.quantity).toFixed(2)}`
+        `रु${item.price.toFixed(2)}`,
+        `रु${(item.price * item.quantity).toFixed(2)}`
       ]),
       headStyles: { fillColor: [34, 65, 50] },
     });
@@ -102,7 +103,7 @@ export default function CustomerDashboardPage() {
     const finalY = (doc as any).lastAutoTable.finalY;
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Total: ₹${order.total.toFixed(2)}`, 14, finalY + 15);
+    doc.text(`Total: रु${order.total.toFixed(2)}`, 14, finalY + 15);
 
     // Save PDF
     doc.save(`invoice-${order.id}.pdf`);
@@ -150,7 +151,7 @@ export default function CustomerDashboardPage() {
                       {order.createdAt ? format(order.createdAt, 'PPpp') : 'N/A'}
                     </TableCell>
                     <TableCell>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
-                    <TableCell>₹{order.total.toFixed(2)}</TableCell>
+                    <TableCell>रु{order.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                     </TableCell>

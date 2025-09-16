@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -79,7 +80,7 @@ export default function DashboardPage() {
     }, [toast, isAdmin, authLoading]);
 
     const statCards = [
-        { title: "Total Revenue", value: `₹${stats.totalRevenue.toFixed(2)}`, icon: DollarSign },
+        { title: "Total Revenue", value: `रु${stats.totalRevenue.toFixed(2)}`, icon: DollarSign },
         { title: "Customers", value: `+${stats.totalCustomers}`, icon: Users },
         { title: "Sales", value: `+${stats.totalSales}`, icon: CreditCard },
         { title: "Active Now", value: "+573", change: "+201 since last hour", icon: Activity },
@@ -135,7 +136,7 @@ export default function DashboardPage() {
                                                 <div className="font-medium">{order.customer.name}</div>
                                                 <div className="text-sm text-muted-foreground">{order.customer.email}</div>
                                             </TableCell>
-                                            <TableCell>₹{order.total.toFixed(2)}</TableCell>
+                                            <TableCell>रु{order.total.toFixed(2)}</TableCell>
                                             <TableCell>
                                                 <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                                             </TableCell>
@@ -167,7 +168,7 @@ export default function DashboardPage() {
                                             <p className="font-medium">{product.name}</p>
                                             <p className="text-sm text-muted-foreground">Stock: {product.stock}</p>
                                         </div>
-                                        <p className="font-semibold">₹{product.price.toFixed(2)}</p>
+                                        <p className="font-semibold">रु{product.price.toFixed(2)}</p>
                                     </div>
                                 ))}
                             </div>
