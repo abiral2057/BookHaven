@@ -14,6 +14,7 @@ import {
   limit,
   updateDoc,
   deleteDoc,
+  runTransaction,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 import type { CartItem } from "@/hooks/use-cart";
@@ -315,9 +316,37 @@ export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
 
 
 export const updateOrderStatus = async (orderId: string, status: Order['status']): Promise<void> => {
+    const orderRef = doc(db, "orders", orderId);
     try {
-        const orderRef = doc(db, "orders", orderId);
-        await updateDoc(orderRef, { status });
+        if (status === "Delivered") {
+            // Use a transaction to ensure atomicity
+            await runTransaction(db, async (transaction) => {
+                const orderDoc = await transaction.get(orderRef);
+                if (!orderDoc.exists()) {
+                    throw "Order does not exist!";
+                }
+
+                const orderData = orderDoc.data() as Order;
+
+                // Decrease stock for each item in the order
+                for (const item of orderData.items) {
+                    const productRef = doc(db, "products", item.id);
+                    const productDoc = await transaction.get(productRef);
+
+                    if (productDoc.exists()) {
+                        const currentStock = productDoc.data().stock;
+                        const newStock = Math.max(0, currentStock - item.quantity);
+                        transaction.update(productRef, { stock: newStock });
+                    }
+                }
+
+                // Finally, update the order status
+                transaction.update(orderRef, { status });
+            });
+        } else {
+            // If status is not 'Delivered', just update the status
+            await updateDoc(orderRef, { status });
+        }
     } catch (e) {
         console.error("Error updating order status: ", e);
         throw new Error("Could not update order status");

@@ -1,7 +1,9 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Product } from '@/lib/db';
+import { useToast } from './use-toast';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -20,6 +22,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { toast } = useToast();
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     // Lazy initialization from localStorage
     if (typeof window === 'undefined') {
@@ -47,13 +50,31 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
       if (existingItem) {
-        // Increase quantity if item already exists
-        return prevItems.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
+        if (existingItem.quantity < product.stock) {
+          // Increase quantity if item already exists
+          return prevItems.map(item =>
+            item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          );
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Stock Limit Reached",
+            description: `You cannot add more of "${product.name}".`,
+          });
+          return prevItems;
+        }
       }
       // Add new item with quantity 1
-      return [...prevItems, { ...product, quantity: 1 }];
+      if (product.stock > 0) {
+        return [...prevItems, { ...product, quantity: 1 }];
+      } else {
+         toast({
+            variant: "destructive",
+            title: "Out of Stock",
+            description: `"${product.name}" is currently out of stock.`,
+          });
+        return prevItems;
+      }
     });
   };
 
@@ -67,9 +88,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === productId ? { ...item, quantity } : item
-      )
+      prevItems.map(item => {
+        if (item.id === productId) {
+           if (quantity > item.stock) {
+              toast({
+                variant: "destructive",
+                title: "Stock Limit Reached",
+                description: `Only ${item.stock} copies of "${item.name}" are available.`,
+              });
+              return { ...item, quantity: item.stock };
+            }
+          return { ...item, quantity };
+        }
+        return item;
+      })
     );
   };
 
