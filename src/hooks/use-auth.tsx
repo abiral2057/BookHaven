@@ -40,6 +40,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const ADMIN_EMAIL = "nepalhighlandtreks2080@gmail.com";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -51,9 +53,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       if (user) {
         setUser(user);
-        // Check for admin custom claim
-        const idTokenResult = await user.getIdTokenResult();
-        setIsAdmin(!!idTokenResult.claims.admin);
+        // This is a client-side check to simulate admin role.
+        // For production, it's recommended to use Firebase custom claims set from a secure backend.
+        setIsAdmin(user.email === ADMIN_EMAIL);
       } else {
         setUser(null);
         setIsAdmin(false);
