@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookOpen, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -20,6 +21,8 @@ export default function ShopPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [maxPrice, setMaxPrice] = useState(100);
+  const [priceRange, setPriceRange] = useState([100]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +34,13 @@ export default function ShopPage() {
         ]);
         setProducts(fetchedProducts);
         setCategories(fetchedCategories);
+
+        if (fetchedProducts.length > 0) {
+            const topPrice = Math.ceil(Math.max(...fetchedProducts.map(p => p.price)));
+            setMaxPrice(topPrice);
+            setPriceRange([topPrice]);
+        }
+
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({
@@ -48,6 +58,7 @@ export default function ShopPage() {
   const clearFilters = () => {
       setSearchTerm("");
       setSelectedCategory(null);
+      setPriceRange([maxPrice]);
   }
 
   const filteredProducts = useMemo(() => {
@@ -57,11 +68,12 @@ export default function ShopPage() {
         product.author.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      const matchesPrice = product.price <= priceRange[0];
+      return matchesSearch && matchesCategory && matchesPrice;
     });
-  }, [products, searchTerm, selectedCategory]);
+  }, [products, searchTerm, selectedCategory, priceRange]);
   
-  const hasActiveFilters = searchTerm.length > 0 || selectedCategory !== null;
+  const hasActiveFilters = searchTerm.length > 0 || selectedCategory !== null || priceRange[0] < maxPrice;
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
@@ -81,7 +93,7 @@ export default function ShopPage() {
             {/* Filters Sidebar */}
             <aside className="lg:col-span-1 bg-card/50 p-6 rounded-lg self-start sticky top-24">
               <h2 className="text-2xl font-bold mb-6">Filters</h2>
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Search Filter */}
                 <div>
                   <Label htmlFor="search" className="text-lg font-semibold">Search</Label>
@@ -95,6 +107,24 @@ export default function ShopPage() {
                     />
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   </div>
+                </div>
+
+                {/* Price Filter */}
+                <div>
+                    <Label htmlFor="price" className="text-lg font-semibold">Price</Label>
+                     <div className="flex justify-between items-center mt-2">
+                        <span>₹0</span>
+                        <span>₹{priceRange[0]}</span>
+                    </div>
+                    <Slider 
+                        id="price"
+                        min={0}
+                        max={maxPrice}
+                        step={1}
+                        value={priceRange}
+                        onValueChange={setPriceRange}
+                        className="mt-2"
+                    />
                 </div>
 
                  {hasActiveFilters && (

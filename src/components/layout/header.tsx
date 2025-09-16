@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Book, LogOut, ShieldCheck, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function UserButton() {
     const { user, signInWithGoogle, logout, loading } = useAuth();
@@ -87,6 +88,13 @@ function UserButton() {
 }
 
 export function Header() {
+  const pathname = usePathname();
+  const navItems = [
+    { href: '/', label: 'Home'},
+    { href: '/shop', label: 'Shop'},
+    { href: '/about', label: 'About'},
+  ]
+
   return (
       <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -95,9 +103,18 @@ export function Header() {
             <span className="text-2xl font-bold text-foreground">BookHaven</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
-            <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Home</Link>
-            <Link href="/shop" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Shop</Link>
-            <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</Link>
+             {navItems.map((item) => (
+                 <Link 
+                    key={item.label}
+                    href={item.href} 
+                    className={cn(
+                        "text-sm font-medium transition-colors",
+                        pathname === item.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                 >
+                    {item.label}
+                </Link>
+            ))}
           </nav>
           <div className="flex items-center gap-4">
             <CartSheet />
