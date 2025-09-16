@@ -11,7 +11,6 @@ import { Book, Home, ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { getProductRecommendations } from "@/ai/flows/product-recommendations";
 import { Card, CardContent } from "@/components/ui/card";
 
 function RelatedProductCard({ product }: { product: Product }) {
@@ -44,7 +43,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [category, setCategory] = useState<Category | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -64,23 +62,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         }
         
         setProduct(fetchedProduct);
-        setAllProducts(allProds);
         
         const productCategory = fetchedCategories.find(c => c.id === fetchedProduct.category);
         setCategory(productCategory || null);
 
-        // Fetch recommendations
+        // Filter for related products by category
         if (allProds.length > 1) {
-            try {
-                const recsOutput = await getProductRecommendations({ browsingHistory: [fetchedProduct.name] });
-                const recommendedProducts = allProds.filter(p => recsOutput.recommendations.includes(p.name) && p.id !== fetchedProduct.id).slice(0, 5);
-                setRecommendations(recommendedProducts);
-            } catch (aiError) {
-                console.error("AI recommendation error:", aiError);
-                // Fallback to category-based recommendations if AI fails
-                const categoryProducts = allProds.filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id).slice(0, 5);
-                setRecommendations(categoryProducts);
-            }
+            const categoryProducts = allProds.filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id).slice(0, 5);
+            setRecommendations(categoryProducts);
         }
 
       } catch (error) {
