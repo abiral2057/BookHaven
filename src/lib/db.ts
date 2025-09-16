@@ -353,3 +353,47 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
         throw new Error("Could not update order status");
     }
 };
+
+export const getTopSellingProducts = async (count: number): Promise<Product[]> => {
+    try {
+        const orders = await getOrders();
+        const productSales: { [productId: string]: number } = {};
+
+        orders.forEach(order => {
+            if (order.status === 'Delivered') { // Only count sales from delivered orders
+                order.items.forEach(item => {
+                    productSales[item.id] = (productSales[item.id] || 0) + item.quantity;
+                });
+            }
+        });
+
+        const sortedProductIds = Object.keys(productSales).sort((a, b) => productSales[b] - productSales[a]);
+        const topProductIds = sortedProductIds.slice(0, count);
+
+        if (topProductIds.length === 0) {
+            return [];
+        }
+
+        // Fetch product details for the top selling products
+        const productsRef = collection(db, "products");
+        const q = query(productsRef, where("__name__", "in", topProductIds));
+        const querySnapshot = await getDocs(q);
+        
+        const products: Product[] = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() } as Product);
+        });
+
+        // Sort the fetched products according to their sales rank
+        const sortedProducts = products.sort((a, b) => {
+            const salesA = productSales[a.id] || 0;
+            const salesB = productSales[b.id] || 0;
+            return salesB - salesA;
+        });
+
+        return sortedProducts;
+    } catch (e) {
+        console.error("Error getting top selling products: ", e);
+        throw new Error("Could not get top selling products");
+    }
+};

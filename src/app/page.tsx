@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getProducts, Product } from '@/lib/db';
+import { getProducts, Product, getTopSellingProducts } from '@/lib/db';
 import { useToast } from "@/hooks/use-toast";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { ProductCard } from "@/components/product/product-card";
@@ -15,15 +15,22 @@ import { Footer } from "@/components/layout/footer";
 
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const fetchedProducts = await getProducts(10); // Get 10 most recent products for the carousel
-        setProducts(fetchedProducts);
+        const [fetchedProducts, fetchedTopProducts] = await Promise.all([
+          getProducts(10), // Get 10 most recent products
+          getTopSellingProducts(10) // Get 10 top selling products
+        ]);
+        
+        setFeaturedProducts(fetchedProducts);
+        setTopProducts(fetchedTopProducts);
+
       } catch (error) {
         console.error("Error fetching products:", error);
         toast({
@@ -81,7 +88,7 @@ export default function Home() {
                 </div>
                 {isLoading ? (
                   <div className="text-center text-muted-foreground">Loading books...</div>
-                ) : products.length > 0 ? (
+                ) : featuredProducts.length > 0 ? (
                   <Carousel
                     opts={{
                       align: "start",
@@ -89,7 +96,7 @@ export default function Home() {
                     className="w-full"
                   >
                     <CarouselContent>
-                      {products.map((product) => (
+                      {featuredProducts.map((product) => (
                         <CarouselItem key={product.id} className="basis-2/5 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
                           <div className="p-1 h-full">
                              <ProductCard product={product} />
@@ -107,6 +114,40 @@ export default function Home() {
                 )}
             </div>
         </section>
+        
+        {/* Top Selling Books Section */}
+        {topProducts.length > 0 && (
+          <section id="top-sellers" className="py-16 sm:py-24 bg-card/50">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-12">
+                      <h2 className="text-4xl font-bold text-foreground">Top Sellers</h2>
+                      <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">See what other readers are loving right now.</p>
+                  </div>
+                  {isLoading ? (
+                    <div className="text-center text-muted-foreground">Loading top sellers...</div>
+                  ) : (
+                    <Carousel
+                      opts={{
+                        align: "start",
+                      }}
+                      className="w-full"
+                    >
+                      <CarouselContent>
+                        {topProducts.map((product) => (
+                          <CarouselItem key={product.id} className="basis-2/5 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+                            <div className="p-1 h-full">
+                               <ProductCard product={product} />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="hidden sm:flex" />
+                      <CarouselNext className="hidden sm:flex" />
+                    </Carousel>
+                  )}
+              </div>
+          </section>
+        )}
       </main>
       <Footer />
     </div>
