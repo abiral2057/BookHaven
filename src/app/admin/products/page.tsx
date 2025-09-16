@@ -515,13 +515,13 @@ export default function ProductsPage() {
                              <Image
                               src={product.images[0]}
                               alt={product.name}
-                              width={64}
-                              height={96}
+                              width={40}
+                              height={60}
                               className="rounded-md object-cover"
                             />
                           ) : (
-                            <div className="h-24 w-16 bg-muted rounded-md flex items-center justify-center">
-                              <Book className="h-8 w-8 text-muted-foreground"/>
+                            <div className="h-16 w-12 bg-muted rounded-md flex items-center justify-center">
+                              <Book className="h-6 w-6 text-muted-foreground"/>
                             </div>
                           )}
                         </TableCell>
