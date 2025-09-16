@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addProduct, getProducts, Product, getCategories, Category } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Book, BookOpen } from "lucide-react";
+import { PlusCircle, Book, BookOpen, Sparkles, Loader2 } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import { checkDbConnection } from "@/lib/firebase";
+import { generateProductDescription } from "@/ai/flows/product-description-generator";
 
 const productSchema = z.object({
   name: z.string().min(1, "Book title is required"),
@@ -55,12 +56,23 @@ const productSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
+const defaultProducts = [
+    { name: 'To Kill a Mockingbird', author: 'Harper Lee', description: 'A novel about the serious issues of rape and racial inequality.', price: 12.99, stock: 50, category: 'Fiction' },
+    { name: '1984', author: 'George Orwell', description: 'A dystopian social science fiction novel and cautionary tale.', price: 10.99, stock: 30, category: 'Science Fiction' },
+    { name: 'The Great Gatsby', author: 'F. Scott Fitzgerald', description: 'A novel about the American dream and its corruption.', price: 14.00, stock: 45, category: 'Fiction' },
+    { name: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', description: 'A book that surveys the history of humankind.', price: 22.50, stock: 25, category: 'History' },
+    { name: 'The Hobbit', author: 'J.R.R. Tolkien', description: 'A fantasy novel and children\'s book about the quest of hobbit Bilbo Baggins.', price: 18.00, stock: 60, category: 'Science Fiction' },
+];
+
+
 export default function ProductsPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const seeded = useRef(false);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -82,7 +94,7 @@ export default function ProductsPage() {
         toast({
           variant: "destructive",
           title: "Database Connection Error",
-          description: error || "Could not connect to the database. Please check your Firebase configuration and internet connection.",
+          description: error || "Could not connect to the database.",
         });
         setIsLoading(false);
         return;
@@ -93,7 +105,37 @@ export default function ProductsPage() {
           getProducts(),
           getCategories(),
         ]);
-        setProducts(fetchedProducts);
+
+        if (fetchedProducts.length === 0 && !seeded.current && fetchedCategories.length > 0) {
+            seeded.current = true;
+            toast({
+                title: "No Books Found",
+                description: "Seeding your database with some sample books...",
+            });
+
+            const categoryMap = fetchedCategories.reduce((acc, cat) => {
+                acc[cat.name] = cat.id;
+                return acc;
+            }, {} as Record<string, string>);
+
+            await Promise.all(defaultProducts.map(p => addProduct({
+                ...p,
+                category: categoryMap[p.category],
+                images: [`https://picsum.photos/seed/${p.name.replace(/\s/g, '-')}/400/600`],
+            })));
+            
+            const newProducts = await getProducts();
+            setProducts(newProducts);
+
+             toast({
+                title: "Sample Books Added!",
+                description: "Your database now has some sample books.",
+            });
+
+        } else {
+            setProducts(fetchedProducts);
+        }
+        
         setCategories(fetchedCategories);
       } catch (error) {
         toast({
@@ -109,6 +151,43 @@ export default function ProductsPage() {
     
     fetchData();
   }, [toast]);
+
+  const handleGenerateDescription = async () => {
+    const title = form.getValues("name");
+    const author = form.getValues("author");
+
+    if (!title || !author) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please enter a book title and author first.",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const result = await generateProductDescription({ keywords: `${title} by ${author}` });
+      if (result.description) {
+        form.setValue("description", result.description, { shouldValidate: true });
+        toast({
+          title: "Description Generated!",
+          description: "The AI-generated description has been added.",
+        });
+      } else {
+        throw new Error("No description was returned.");
+      }
+    } catch (error) {
+      console.error("Failed to generate description:", error);
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Could not generate a description. Please try again.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
@@ -170,42 +249,55 @@ export default function ProductsPage() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
               >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Book Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. The Great Gatsby" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="author"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Author</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. F. Scott Fitzgerald" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Book Title</FormLabel>
+                        <FormControl>
+                            <Input placeholder="e.g. The Great Gatsby" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="author"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Author</FormLabel>
+                        <FormControl>
+                            <Input placeholder="e.g. F. Scott Fitzgerald" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
                 <FormField
                   control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                       <div className="flex items-center justify-between">
+                        <FormLabel>Description</FormLabel>
+                         <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
+                          {isGenerating ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="mr-2 h-4 w-4" />
+                          )}
+                          Generate with AI
+                        </Button>
+                      </div>
                       <FormControl>
                         <Textarea
                           placeholder="Describe the book..."
                           {...field}
+                           rows={5}
                         />
                       </FormControl>
                       <FormMessage />
@@ -238,6 +330,7 @@ export default function ProductsPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                             {categories.length === 0 && <p className="p-4 text-sm text-muted-foreground">No categories found. Please add one on the Categories page.</p>}
                             {categories.map((category) => (
                               <SelectItem key={category.id} value={category.id}>
                                 {category.name}
