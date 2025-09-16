@@ -105,6 +105,22 @@ export const getProducts = async (count?: number): Promise<Product[]> => {
   }
 }
 
+export const getProduct = async (id: string): Promise<Product | null> => {
+  try {
+    const productRef = doc(db, "products", id);
+    const docSnap = await getDoc(productRef);
+
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as Product;
+    } else {
+      return null;
+    }
+  } catch (e) {
+    console.error("Error getting document: ", e);
+    throw new Error("Could not get product");
+  }
+};
+
 export const addCategory = async (category: CategoryInput): Promise<string> => {
     try {
         const docRef = await addDoc(collection(db, "categories"), {
@@ -191,7 +207,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
 };
 
 
-export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status" | "userId">): Promise<string> => {
+export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status" >): Promise<string> => {
     const user = auth.currentUser;
     if (!user) {
         throw new Error("User is not authenticated. Cannot place order.");

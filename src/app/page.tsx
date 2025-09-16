@@ -28,7 +28,9 @@ function ProductCard({ product }: { product: Product }) {
   const { toast } = useToast();
   const { addToCart } = useCart();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent link navigation
+    e.stopPropagation(); // Stop event from bubbling up
     addToCart(product);
     toast({
       title: "Added to Cart",
@@ -37,33 +39,35 @@ function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group h-full flex flex-col">
-      <div className="relative">
-        <Image
-          src={product.images?.[0] || 'https://picsum.photos/seed/1/600/400'}
-          alt={product.name}
-          width={600}
-          height={400}
-          className="object-cover w-full h-56 transition-transform duration-300 group-hover:scale-105"
-          data-ai-hint="book cover"
-        />
-      </div>
-      <CardContent className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-bold font-headline text-foreground truncate">{product.name}</h3>
-        <p className="text-sm text-muted-foreground mt-1">{product.author}</p>
-        <div className="flex items-center justify-between mt-auto pt-4">
-          <p className="text-xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
-          <Button 
-            onClick={handleAddToCart}
-            disabled={product.stock <= 0}
-            size="sm"
-          >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
-          </Button>
+    <Link href={`/products/${product.id}`} className="block h-full">
+      <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group h-full flex flex-col">
+        <div className="relative">
+          <Image
+            src={product.images?.[0] || 'https://picsum.photos/seed/1/600/400'}
+            alt={product.name}
+            width={600}
+            height={400}
+            className="object-cover w-full h-56 transition-transform duration-300 group-hover:scale-105"
+            data-ai-hint="book cover"
+          />
         </div>
-      </CardContent>
-    </Card>
+        <CardContent className="p-4 flex flex-col flex-grow">
+          <h3 className="text-lg font-bold font-headline text-foreground truncate">{product.name}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{product.author}</p>
+          <div className="flex items-center justify-between mt-auto pt-4">
+            <p className="text-xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+            <Button 
+              onClick={handleAddToCart}
+              disabled={product.stock <= 0}
+              size="sm"
+            >
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
