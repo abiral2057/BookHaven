@@ -14,7 +14,7 @@ import {
   limit,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
 import type { CartItem } from "@/hooks/use-cart";
 
 export interface Product {
@@ -133,15 +133,23 @@ export const getCategories = async (): Promise<Category[]> => {
     }
 }
 
-export const addCustomer = async (customer: CustomerInput): Promise<string> => {
+export const addCustomer = async (customer: Omit<CustomerInput, 'name' | 'email'> & { name: string; email: string; }): Promise<string> => {
     const customerRef = doc(db, "customers", customer.email);
     const docSnap = await getDoc(customerRef);
+
+    const customerData = {
+        name: customer.name,
+        email: customer.email,
+        address: customer.address || null,
+        city: customer.city || null,
+        postalCode: customer.postalCode || null,
+    };
 
     if (!docSnap.exists()) {
         // New customer, add them with firstOrderAt
         try {
             await setDoc(customerRef, {
-                ...customer,
+                ...customerData,
                 firstOrderAt: serverTimestamp()
             });
             return customer.email;
@@ -152,7 +160,7 @@ export const addCustomer = async (customer: CustomerInput): Promise<string> => {
     } else {
        // Existing customer, update their address info
        try {
-         await setDoc(customerRef, { ...customer }, { merge: true });
+         await setDoc(customerRef, customerData , { merge: true });
          return customer.email;
        } catch (e) {
           console.error("Error updating customer: ", e);
@@ -183,7 +191,12 @@ export const getCustomers = async (): Promise<Customer[]> => {
 };
 
 
-export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status">): Promise<string> => {
+export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status" | "userId">): Promise<string> => {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("User is not authenticated. Cannot place order.");
+    }
+
     try {
         // First, ensure the customer exists and has up-to-date info
         await addCustomer({
@@ -196,6 +209,7 @@ export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status">
 
         const docRef = await addDoc(collection(db, "orders"), {
             ...order,
+            userId: user.uid,
             status: "Pending",
             createdAt: serverTimestamp(),
         });

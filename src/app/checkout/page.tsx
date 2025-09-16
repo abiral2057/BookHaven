@@ -87,6 +87,14 @@ export default function CheckoutPage() {
       });
       return;
     }
+     if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Not Logged In",
+        description: "You must be logged in to place an order.",
+      });
+      return;
+    }
 
     try {
       await addOrder({
@@ -101,7 +109,6 @@ export default function CheckoutPage() {
         },
         items: cartItems,
         total: cartTotal,
-        userId: user?.uid, // Associate order with logged-in user
       });
 
       toast({
