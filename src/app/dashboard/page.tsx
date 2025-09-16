@@ -137,10 +137,11 @@ export default function CustomerDashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="w-[100px] sm:w-auto">Order</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
                   <TableHead className="text-right">Invoice</TableHead>
                 </TableRow>
               </TableHeader>
@@ -148,17 +149,26 @@ export default function CustomerDashboardPage() {
                 {orders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">
-                      {order.createdAt ? format(order.createdAt, 'PPpp') : 'N/A'}
+                      <div className="truncate ">{`#${order.id.substring(0, 6)}...`}</div>
+                      <div className="sm:hidden text-xs text-muted-foreground mt-1">
+                        {order.createdAt ? format(order.createdAt, 'MMM d, yyyy') : 'N/A'}
+                      </div>
+                       <div className="sm:hidden mt-1">
+                         <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                       </div>
+                    </TableCell>
+                     <TableCell className="hidden sm:table-cell">
+                      {order.createdAt ? format(order.createdAt, 'PP') : 'N/A'}
                     </TableCell>
                     <TableCell>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
                     <TableCell>रु{order.total.toFixed(2)}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(order)}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
+                        <Download className="mr-0 sm:mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Download</span>
                       </Button>
                     </TableCell>
                   </TableRow>
