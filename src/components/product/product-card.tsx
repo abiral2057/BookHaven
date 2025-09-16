@@ -27,21 +27,21 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/products/${product.id}`} className="block h-full">
       <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-lg hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 group h-full flex flex-col">
-        <div className="relative">
+        <div className="relative bg-muted/20">
           <Image
-            src={product.images?.[0] || 'https://picsum.photos/seed/1/600/400'}
+            src={product.images?.[0] || 'https://picsum.photos/seed/1/400/600'}
             alt={product.name}
-            width={600}
-            height={400}
-            className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
+            width={400}
+            height={600}
+            className="object-contain w-full h-48 transition-transform duration-300 group-hover:scale-105"
             data-ai-hint="book cover"
           />
         </div>
         <CardContent className="p-4 flex flex-col flex-grow">
-          <h3 className="text-lg font-bold text-foreground truncate">{product.name}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{product.author}</p>
+          <h3 className="text-base font-bold text-foreground truncate">{product.name}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{product.author}</p>
           <div className="flex items-center justify-between mt-auto pt-4">
-            <p className="text-xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+            <p className="text-lg font-semibold text-primary">₹{product.price.toFixed(2)}</p>
             <Button 
               onClick={handleAddToCart}
               disabled={product.stock <= 0}

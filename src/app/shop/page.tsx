@@ -8,7 +8,6 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ProductCard } from "@/components/product/product-card";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { BookOpen, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ export default function ShopPage() {
   const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,17 +45,9 @@ export default function ShopPage() {
     fetchData();
   }, [toast]);
 
-  const handleCategoryChange = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-  
   const clearFilters = () => {
       setSearchTerm("");
-      setSelectedCategories([]);
+      setSelectedCategory(null);
   }
 
   const filteredProducts = useMemo(() => {
@@ -65,13 +56,12 @@ export default function ShopPage() {
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.author.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory =
-        selectedCategories.length === 0 ||
-        selectedCategories.includes(product.category);
+        !selectedCategory || product.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [products, searchTerm, selectedCategories]);
+  }, [products, searchTerm, selectedCategory]);
   
-  const hasActiveFilters = searchTerm.length > 0 || selectedCategories.length > 0;
+  const hasActiveFilters = searchTerm.length > 0 || selectedCategory !== null;
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
@@ -107,27 +97,6 @@ export default function ShopPage() {
                   </div>
                 </div>
 
-                {/* Category Filter */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Categories</h3>
-                  <div className="space-y-3">
-                    {categories.map((category) => (
-                      <div key={category.id} className="flex items-center">
-                        <Checkbox
-                          id={`cat-${category.id}`}
-                          checked={selectedCategories.includes(category.id)}
-                          onCheckedChange={() => handleCategoryChange(category.id)}
-                        />
-                        <Label
-                          htmlFor={`cat-${category.id}`}
-                          className="ml-3 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {category.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
                  {hasActiveFilters && (
                     <Button variant="ghost" onClick={clearFilters} className="w-full">
                         <X className="mr-2 h-4 w-4"/>
@@ -139,6 +108,27 @@ export default function ShopPage() {
 
             {/* Products Grid */}
             <div className="lg:col-span-3">
+               {/* Category Filters */}
+              <div className="mb-6">
+                <div className="flex flex-wrap gap-2">
+                   <Button 
+                      variant={!selectedCategory ? 'secondary' : 'outline'}
+                      onClick={() => setSelectedCategory(null)}
+                    >
+                      All
+                    </Button>
+                  {categories.map((category) => (
+                    <Button 
+                      key={category.id} 
+                      variant={selectedCategory === category.id ? 'secondary' : 'outline'}
+                      onClick={() => setSelectedCategory(category.id)}
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {Array.from({ length: 9 }).map((_, i) => (
