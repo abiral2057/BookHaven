@@ -17,7 +17,7 @@ import { ArrowLeft } from "lucide-react";
 function RelatedProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/products/${product.id}`} className="block h-full">
-      <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 group h-full flex flex-col">
+      <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-lg hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 group h-full flex flex-col">
         <div className="relative">
           <Image
             src={product.images?.[0] || 'https://picsum.photos/seed/2/600/400'}
@@ -29,7 +29,7 @@ function RelatedProductCard({ product }: { product: Product }) {
           />
         </div>
         <CardContent className="p-4 flex flex-col flex-grow">
-          <h3 className="text-base font-bold font-headline text-foreground truncate">{product.name}</h3>
+          <h3 className="text-base font-bold text-foreground truncate">{product.name}</h3>
           <p className="text-xs text-muted-foreground mt-1">{product.author}</p>
           <p className="text-lg font-semibold text-primary mt-auto pt-2">₹{product.price.toFixed(2)}</p>
         </CardContent>
@@ -67,7 +67,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         const productCategory = fetchedCategories.find(c => c.id === fetchedProduct.category);
         setCategory(productCategory || null);
 
-        // Filter for related products by category
         if (allProds.length > 1) {
             const categoryProducts = allProds.filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id).slice(0, 5);
             setRecommendations(categoryProducts);
@@ -97,7 +96,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   }
 
   if (!product) {
-    return null; // or a not found component
+    return null; 
   }
 
   const handleAddToCart = () => {
@@ -110,13 +109,13 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   return (
     <>
-     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-white/10 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2">
             <Book className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold font-headline text-foreground">BookHaven</span>
+            <span className="text-2xl font-bold text-foreground">BookHaven</span>
           </Link>
-           <Button variant="outline" asChild>
+           <Button variant="outline" asChild className="border-primary/20 hover:bg-primary/5">
                 <Link href="/">
                     <ArrowLeft className="mr-2 h-4 w-4"/>
                     Back to Store
@@ -125,7 +124,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         </div>
       </header>
       <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* Product Image */}
           <div className="flex justify-center items-start">
              <Image
@@ -133,15 +132,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 alt={product.name}
                 width={600}
                 height={800}
-                className="rounded-lg shadow-2xl object-cover w-full max-w-md"
+                className="rounded-lg shadow-2xl object-cover w-full max-w-md aspect-[2/3]"
                 data-ai-hint="book cover"
                 priority
             />
           </div>
 
           {/* Product Details */}
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-extrabold font-headline tracking-tight text-foreground sm:text-5xl">{product.name}</h1>
+          <div className="flex flex-col pt-4">
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{product.name}</h1>
             <p className="mt-2 text-xl text-muted-foreground">{product.author}</p>
             
              {category && (
@@ -152,8 +151,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             
             <p className="mt-6 text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
 
-            <div className="mt-6">
-                <p className="text-lg text-foreground prose prose-lg max-w-none">{product.description}</p>
+            <div className="mt-6 text-lg text-foreground/80 prose prose-invert max-w-none">
+                <p>{product.description}</p>
             </div>
             
             <div className="mt-8">
@@ -162,7 +161,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 </p>
                 <Button 
                     size="lg" 
-                    className="w-full mt-2" 
+                    className="w-full mt-2 bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-500 hover:to-blue-500 text-primary-foreground shadow-lg shadow-blue-500/20" 
                     onClick={handleAddToCart}
                     disabled={product.stock <= 0}
                 >
@@ -176,8 +175,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         {/* Related Products */}
         {recommendations.length > 0 && (
             <section className="mt-24">
-                <h2 className="text-3xl font-bold text-center font-headline mb-10">You Might Also Like</h2>
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <h2 className="text-3xl font-bold text-center mb-10">You Might Also Like</h2>
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                     {recommendations.map(rec => (
                         <RelatedProductCard key={rec.id} product={rec} />
                     ))}
