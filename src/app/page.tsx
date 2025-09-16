@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import { Book, ArrowRight, ShoppingCart, User, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
@@ -67,7 +68,8 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 function UserButton() {
-    const { user, signInWithGoogle, logout, loading } = useAuth();
+    const { user, signInWithGoogle, logout, loading, isAdmin } = useAuth();
+    const router = useRouter();
 
     const getInitials = (name: string | null | undefined) => {
         if (!name) return "??";
@@ -112,7 +114,7 @@ function UserButton() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href={"/dashboard"}>
+                    <Link href={isAdmin ? "/admin/dashboard" : "/dashboard"}>
                         <User className="mr-2 h-4 w-4" />
                         <span>My Account</span>
                     </Link>
@@ -173,7 +175,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative h-[50vh] md:h-[60vh] flex items-center justify-center text-center text-white">
           <Image 
-            src="https://images.unsplash.com/photo-1491841550275-5b462bf985ca?q=80&w=2070&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=2070&auto=format&fit=crop"
             alt="Library with books"
             fill
             className="object-cover"
