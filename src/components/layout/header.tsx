@@ -17,12 +17,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Book, LogOut, ShieldCheck, User, Menu, X } from 'lucide-react';
+import { Book, LogOut, ShieldCheck, User, Menu, X, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
 function UserButton() {
-    const { user, signInWithGoogle, logout, loading } = useAuth();
+    const { user, signInWithGoogle, logout, loading, isAdmin } = useAuth();
 
     const getInitials = (name: string | null | undefined) => {
         if (!name) return "??";
@@ -40,9 +40,8 @@ function UserButton() {
     if (!user) {
         return (
           <>
-            <Button onClick={signInWithGoogle} variant="outline" className="border-primary/20 hover:bg-primary/5">Customer Login</Button>
-            <Button asChild variant="ghost">
-                <Link href="/admin/dashboard"><ShieldCheck className="mr-2 h-4 w-4" />Admin</Link>
+            <Button asChild>
+                <Link href="/login"><LogIn className="mr-2 h-4 w-4" />Login</Link>
             </Button>
           </>
         )
@@ -72,12 +71,14 @@ function UserButton() {
                         <span>My Account</span>
                     </Link>
                 </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                    <Link href="/admin/dashboard">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        <span>Admin Panel</span>
-                    </Link>
-                </DropdownMenuItem>
+                 {isAdmin && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin/dashboard">
+                            <ShieldCheck className="mr-2 h-4 w-4" />
+                            <span>Admin Panel</span>
+                        </Link>
+                    </DropdownMenuItem>
+                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
                      <LogOut className="mr-2 h-4 w-4" />
@@ -131,7 +132,8 @@ export function Header() {
                 <UserButton />
               </div>
               <ThemeToggle />
-              <div className="md:hidden">
+              <div className="md:hidden flex items-center gap-2">
+                 <CartSheet />
                 <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
                   <Menu className="h-6 w-6" />
                 </Button>
@@ -171,8 +173,9 @@ export function Header() {
                 </Link>
             ))}
              <div className="mt-8 flex flex-col items-center gap-4 w-full px-8">
-                <CartSheet />
-                <UserButton />
+                <div className="pt-8 border-t border-border w-full flex justify-center">
+                  <UserButton />
+                </div>
              </div>
           </nav>
         </div>

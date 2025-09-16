@@ -2,15 +2,39 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { 
+  onAuthStateChanged, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+  type User,
+  type AuthError
+} from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+
+export interface SignUpWithEmailCredentials {
+    email: string;
+    passwordOne: string;
+    displayName: string;
+}
+
+export interface SignInWithEmailCredentials {
+    email: string;
+    passwordOne: string;
+}
+
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
+  signUpWithEmail: (credentials: SignUpWithEmailCredentials) => Promise<{ success: boolean; error?: AuthError }>;
+  signInWithEmail: (credentials: SignInWithEmailCredentials) => Promise<{ success: boolean; error?: AuthError }>;
   logout: () => Promise<void>;
 }
 
@@ -44,13 +68,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener will handle user state updates.
+      // The onAuthStateChanged listener will handle user state updates and routing.
     } catch (error: any) {
-      // Don't log an error if the user closes the popup.
       if (error.code === 'auth/popup-closed-by-user') {
         return;
       }
       console.error("Error signing in with Google: ", error);
+    }
+  };
+
+  const signUpWithEmail = async ({ email, passwordOne, displayName }: SignUpWithEmailCredentials) => {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, passwordOne);
+        await updateProfile(userCredential.user, { displayName });
+        // The onAuthStateChanged listener will handle the user state update.
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error as AuthError };
+    }
+  };
+
+  const signInWithEmail = async ({ email, passwordOne }: SignInWithEmailCredentials) => {
+     try {
+        await signInWithEmailAndPassword(auth, email, passwordOne);
+        // The onAuthStateChanged listener will handle the user state update.
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error as AuthError };
     }
   };
 
@@ -64,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, isAdmin, signInWithGoogle, logout };
+  const value = { user, loading, isAdmin, signInWithGoogle, signUpWithEmail, signInWithEmail, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
