@@ -70,9 +70,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         setCategory(productCategory || null);
 
         // Fetch recommendations
-        const recsOutput = await getProductRecommendations({ browsingHistory: [fetchedProduct.name] });
-        const recommendedProducts = allProds.filter(p => recsOutput.recommendations.includes(p.name) && p.id !== fetchedProduct.id);
-        setRecommendations(recommendedProducts);
+        if (allProds.length > 1) {
+            try {
+                const recsOutput = await getProductRecommendations({ browsingHistory: [fetchedProduct.name] });
+                const recommendedProducts = allProds.filter(p => recsOutput.recommendations.includes(p.name) && p.id !== fetchedProduct.id).slice(0, 5);
+                setRecommendations(recommendedProducts);
+            } catch (aiError) {
+                console.error("AI recommendation error:", aiError);
+                // Fallback to category-based recommendations if AI fails
+                const categoryProducts = allProds.filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id).slice(0, 5);
+                setRecommendations(categoryProducts);
+            }
+        }
 
       } catch (error) {
         console.error("Error fetching product data:", error);
@@ -111,7 +120,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   return (
     <>
-     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b">
+     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2">
             <Book className="h-8 w-8 text-primary" />
