@@ -28,13 +28,8 @@ export default function CustomerDashboardPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (authLoading) {
-      return; // Wait until authentication state is resolved
-    }
-
     const fetchOrders = async () => {
       if (!user) {
-        // This case should be handled by the protected layout, but as a fallback:
         setIsLoading(false);
         return;
       }
@@ -65,7 +60,11 @@ export default function CustomerDashboardPage() {
       }
     };
 
-    fetchOrders();
+    if (!authLoading && user) {
+        fetchOrders();
+    } else if (!authLoading && !user) {
+        setIsLoading(false);
+    }
   }, [user, toast, authLoading]);
 
   const getStatusVariant = (status: Order['status']) => {
