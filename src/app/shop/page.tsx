@@ -1,10 +1,177 @@
+
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { getProducts, Product, getCategories, Category } from "@/lib/db";
+import { useToast } from "@/hooks/use-toast";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { ProductCard } from "@/components/product/product-card";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { BookOpen, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
 export default function ShopPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [fetchedProducts, fetchedCategories] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
+        setProducts(fetchedProducts);
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not fetch products or categories.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [toast]);
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+  
+  const clearFilters = () => {
+      setSearchTerm("");
+      setSelectedCategories([]);
+  }
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.author.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategories.length === 0 ||
+        selectedCategories.includes(product.category);
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, selectedCategories]);
+  
+  const hasActiveFilters = searchTerm.length > 0 || selectedCategories.length > 0;
+
   return (
-    <div className="container mx-auto py-12 px-4">
-      <h1 className="text-4xl font-bold text-center">Shop</h1>
-      <p className="text-muted-foreground text-center mt-4">
-        Browse our collection of books. More content coming soon!
-      </p>
+    <div className="bg-background min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+              Our Collection
+            </h1>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              Explore a world of stories, knowledge, and adventure.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Filters Sidebar */}
+            <aside className="lg:col-span-1 bg-card/50 p-6 rounded-lg self-start sticky top-24">
+              <h2 className="text-2xl font-bold mb-6">Filters</h2>
+              <div className="space-y-6">
+                {/* Search Filter */}
+                <div>
+                  <Label htmlFor="search" className="text-lg font-semibold">Search</Label>
+                  <div className="relative mt-2">
+                    <Input
+                      id="search"
+                      placeholder="Title or author..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* Category Filter */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Categories</h3>
+                  <div className="space-y-3">
+                    {categories.map((category) => (
+                      <div key={category.id} className="flex items-center">
+                        <Checkbox
+                          id={`cat-${category.id}`}
+                          checked={selectedCategories.includes(category.id)}
+                          onCheckedChange={() => handleCategoryChange(category.id)}
+                        />
+                        <Label
+                          htmlFor={`cat-${category.id}`}
+                          className="ml-3 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {category.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                 {hasActiveFilters && (
+                    <Button variant="ghost" onClick={clearFilters} className="w-full">
+                        <X className="mr-2 h-4 w-4"/>
+                        Clear Filters
+                    </Button>
+                )}
+              </div>
+            </aside>
+
+            {/* Products Grid */}
+            <div className="lg:col-span-3">
+              {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {Array.from({ length: 9 }).map((_, i) => (
+                     <div key={i} className="bg-card/50 p-4 rounded-lg animate-pulse">
+                        <div className="bg-muted h-48 w-full rounded-md"></div>
+                        <div className="mt-4 h-6 w-3/4 bg-muted rounded"></div>
+                        <div className="mt-2 h-4 w-1/2 bg-muted rounded"></div>
+                     </div>
+                  ))}
+                </div>
+              ) : filteredProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-24 col-span-full bg-card/50 rounded-lg">
+                    <BookOpen className="mx-auto h-16 w-16 text-muted-foreground"/>
+                    <h3 className="mt-4 text-xl font-semibold">No Books Found</h3>
+                    <p className="mt-2 text-muted-foreground">
+                        Try adjusting your search or filters.
+                    </p>
+                    <Button variant="outline" className="mt-6" onClick={clearFilters}>
+                        Reset All Filters
+                    </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }
