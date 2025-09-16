@@ -27,12 +27,12 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/products/${product.id}`} className="block h-full group">
       <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-sm hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 h-full flex flex-col">
-        <div className="relative bg-muted/20 aspect-[4/5] w-full">
+        <div className="relative bg-muted/20 aspect-[2/3] w-full">
           <Image
             src={product.images?.[0] || 'https://picsum.photos/seed/1/400/600'}
             alt={product.name}
             fill
-            className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105 p-4"
+            className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105 p-2"
             data-ai-hint="book cover"
           />
         </div>
