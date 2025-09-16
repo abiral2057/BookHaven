@@ -12,26 +12,18 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { SalesChart } from "@/components/admin/sales-chart";
+import { subDays, startOfDay } from 'date-fns';
 
-function getStatusVariant(status: Order['status']) {
-    switch (status) {
-        case 'Pending': return 'default';
-        case 'Confirmed': return 'secondary';
-        case 'Shipping': return 'secondary';
-        case 'Delivered': return 'outline';
-        case 'Refunded': return 'destructive';
-        default: return 'default';
-    }
-};
 
 export default function DashboardPage() {
     const { isAdmin, loading: authLoading } = useAuth();
-    const [recentOrders, setRecentOrders] = useState<Order[]>([]);
     const [topProducts, setTopProducts] = useState<Product[]>([]);
     const [stats, setStats] = useState({
         totalRevenue: 0,
         totalSales: 0,
         totalCustomers: 0,
+        salesData: [] as { date: string; revenue: number }[],
     });
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
@@ -60,8 +52,33 @@ export default function DashboardPage() {
                 const totalSales = ordersData.length;
                 const totalCustomers = customersData.length;
 
-                setStats({ totalRevenue, totalSales, totalCustomers });
-                setRecentOrders(ordersData.slice(0, 5));
+                // Process sales data for the chart
+                const salesByDay: { [key: string]: number } = {};
+                const last7Days = Array.from({ length: 7 }).map((_, i) => {
+                    const d = startOfDay(subDays(new Date(), i));
+                    return d.toISOString().split('T')[0];
+                }).reverse();
+                
+                last7Days.forEach(day => {
+                    salesByDay[day] = 0;
+                });
+
+                ordersData.forEach(order => {
+                    if (order.createdAt) {
+                        const orderDate = order.createdAt.toISOString().split('T')[0];
+                         if (salesByDay.hasOwnProperty(orderDate)) {
+                            salesByDay[orderDate] += order.total;
+                        }
+                    }
+                });
+
+                const salesData = Object.keys(salesByDay).map(date => ({
+                    date,
+                    revenue: salesByDay[date]
+                }));
+
+
+                setStats({ totalRevenue, totalSales, totalCustomers, salesData });
                 setTopProducts(productsData);
 
             } catch (error) {
@@ -116,42 +133,11 @@ export default function DashboardPage() {
             <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <Card className="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle>Recent Orders</CardTitle>
-                        <CardDescription>A list of the most recent orders.</CardDescription>
+                        <CardTitle>Sales This Week</CardTitle>
+                        <CardDescription>A chart of sales revenue over the last 7 days.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        {recentOrders.length > 0 ? (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Customer</TableHead>
-                                        <TableHead>Total</TableHead>
-                                        <TableHead>Status</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {recentOrders.map((order) => (
-                                        <TableRow key={order.id}>
-                                            <TableCell>
-                                                <div className="font-medium">{order.customer.name}</div>
-                                                <div className="text-sm text-muted-foreground">{order.customer.email}</div>
-                                            </TableCell>
-                                            <TableCell>रु{order.total.toFixed(2)}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        ) : (
-                             <div className="text-center py-12 text-muted-foreground">
-                                <p>No recent orders found.</p>
-                                <Button asChild variant="outline" className="mt-4">
-                                    <Link href="/admin/orders">View All Orders</Link>
-                                </Button>
-                            </div>
-                        )}
+                    <CardContent className="pl-2">
+                       <SalesChart data={stats.salesData} />
                     </CardContent>
                 </Card>
                 <Card>
