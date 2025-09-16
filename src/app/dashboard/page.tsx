@@ -135,21 +135,21 @@ export default function CustomerDashboardPage() {
         <CardContent>
           {orders.length > 0 ? (
             <Table>
-              <TableHeader>
+              <TableHeader className="hidden sm:table-header-group">
                 <TableRow>
                   <TableHead className="w-[100px] sm:w-auto">Order</TableHead>
-                  <TableHead className="hidden sm:table-cell">Date</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Total</TableHead>
-                  <TableHead className="hidden sm:table-cell">Status</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Invoice</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                      <div className="truncate ">{`#${order.id.substring(0, 6)}...`}</div>
+                  <TableRow key={order.id} className="grid grid-cols-3 p-4 gap-y-2 sm:table-row sm:p-0">
+                    <TableCell className="p-0 col-span-2 font-medium sm:table-cell">
+                      <div className="truncate font-semibold">{`#${order.id.substring(0, 6)}...`}</div>
                       <div className="sm:hidden text-xs text-muted-foreground mt-1">
                         {order.createdAt ? format(order.createdAt, 'MMM d, yyyy') : 'N/A'}
                       </div>
@@ -160,13 +160,16 @@ export default function CustomerDashboardPage() {
                      <TableCell className="hidden sm:table-cell">
                       {order.createdAt ? format(order.createdAt, 'PP') : 'N/A'}
                     </TableCell>
-                    <TableCell>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
-                    <TableCell>रु{order.total.toFixed(2)}</TableCell>
+                    <TableCell className="p-0 col-span-2 sm:table-cell">
+                        <span className="sm:hidden text-muted-foreground text-sm">Items: </span>
+                        {order.items.reduce((sum, item) => sum + item.quantity, 0)}
+                    </TableCell>
+                    <TableCell className="p-0 col-span-1 text-right font-bold sm:table-cell sm:text-left sm:font-normal">रु{order.total.toFixed(2)}</TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(order)}>
+                    <TableCell className="p-0 col-span-3 text-right sm:table-cell">
+                      <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(order)} className="w-full sm:w-auto">
                         <Download className="mr-0 sm:mr-2 h-4 w-4" />
                         <span className="hidden sm:inline">Download</span>
                       </Button>
