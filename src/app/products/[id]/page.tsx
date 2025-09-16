@@ -12,6 +12,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 
 function RelatedProductCard({ product }: { product: Product }) {
   return (
@@ -117,7 +118,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </Link>
            <Button variant="outline" asChild>
                 <Link href="/">
-                    <Home className="mr-2 h-4 w-4"/>
+                    <ArrowLeft className="mr-2 h-4 w-4"/>
                     Back to Store
                 </Link>
             </Button>

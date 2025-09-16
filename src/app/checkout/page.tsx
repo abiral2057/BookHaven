@@ -20,7 +20,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import { Book } from 'lucide-react';
+import { Book, ArrowLeft } from 'lucide-react';
 import { addOrder } from "@/lib/db";
 import { useEffect } from "react";
 
@@ -149,13 +149,19 @@ export default function CheckoutPage() {
             <Book className="h-8 w-8 text-primary" />
             <span className="text-2xl font-bold font-headline text-foreground">BookHaven</span>
           </Link>
+           <Button variant="outline" asChild>
+              <Link href="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Store
+              </Link>
+            </Button>
         </div>
       </header>
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-center text-4xl font-bold font-headline mb-12">
           Checkout
         </h1>
-        <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Shipping Form */}
             <div>
@@ -213,7 +219,7 @@ export default function CheckoutPage() {
                 </Card>
             </div>
             </div>
-            <Button type="submit" form="checkout-form" className="w-full mt-6" size="lg" disabled={isSubmitting}>
+            <Button type="submit" className="w-full mt-6" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? "Placing Order..." : "Place Order"}
             </Button>
         </form>
