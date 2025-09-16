@@ -202,7 +202,7 @@ export default function ShopPage() {
                           </Button>
                         ))}
                       </div>
-                       <ScrollBar orientation="horizontal" className="h-2" />
+                       <ScrollBar orientation="horizontal" className="h-2 [&>div]:hidden" />
                     </ScrollArea>
                   </div>
               </div>
