@@ -138,7 +138,8 @@ export function ProductReviews({
     }
   };
   
-  const hasUserReviewed = user && reviews.some(review => review.userId === user.uid);
+  const userReview = user ? reviews.find(review => review.userId === user.uid) : undefined;
+  const hasUserReviewed = !!userReview;
 
   return (
     <section className="mt-16" id="reviews">
@@ -149,7 +150,7 @@ export function ProductReviews({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-6 w-6" />
-                Leave a Review
+                {hasUserReviewed ? 'Your Review' : 'Leave a Review'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -163,8 +164,21 @@ export function ProductReviews({
                   </Button>
                 </div>
               ) : hasUserReviewed ? (
-                <div className="text-center text-muted-foreground p-4">
-                    <p>You have already reviewed this product. Thank you for your feedback!</p>
+                <div className="p-1">
+                   <div className="flex gap-4 py-4">
+                        <Avatar>
+                            <AvatarImage src={userReview.userAvatar} />
+                            <AvatarFallback>{getInitials(userReview.userName)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-0.5">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className={cn("h-5 w-5", i < userReview.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
+                                ))}
+                            </div>
+                            <p className="mt-3 text-sm text-foreground/80">{userReview.comment}</p>
+                        </div>
+                    </div>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -216,4 +230,3 @@ export function ProductReviews({
     </section>
   );
 }
-
