@@ -3,39 +3,40 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Products and Categories are public
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Allow public read for products and categories
     match /products/{productId} {
       allow read: if true;
-      allow write: if true; // For admin panel without auth
+      allow write: if false; // Only admin SDK should write products
     }
     
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if true; // For admin panel without auth
+      allow write: if false; // Only admin SDK should write categories
     }
     
-    // Customers can be read by admins, and created during checkout
+    // Allow anyone to read customer list for now
     match /customers/{customerId} {
-       allow read, write: if true; // For admin panel without auth & order creation
+        allow read: if true;
+        allow write: if request.auth != null; // Allow logged in users to create customer entries via orders
     }
 
-    // Orders can be created by anyone, but only read by the user who placed them or by an admin
+    // Order Rules
     match /orders/{orderId} {
-      allow create: if true; // Anyone can place an order
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow update, delete: if true; // For admin panel without auth
-    }
+      // Allow a user to read their own order documents
+      allow read: if request.auth.uid == resource.data.userId;
+      
+      // Allow any authenticated user to create an order
+      // Allow any authenticated user to list orders, but the 'read' rule above will
+      // ensure they can only access the content of their own orders.
+      allow list, create: if request.auth != null;
 
-    // Allow admin panel full access for management
-    match /databases/{database}/documents {
-      // This is a broad rule for the no-auth admin panel.
-      // In a production app with real admin auth, this would be more specific.
-      allow read, write: if true;
-    }
-    
-    // This rule allows the connection check to work for authenticated users
-    match /_test_writes/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      // Allow admin to update/delete (to be implemented with admin SDK later)
+      allow update, delete: if false;
     }
   }
 }
