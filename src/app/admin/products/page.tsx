@@ -500,10 +500,10 @@ export default function ProductsPage() {
                     <TableRow>
                       <TableHead>Cover</TableHead>
                       <TableHead>Title</TableHead>
-                      <TableHead>Author</TableHead>
+                      <TableHead className="hidden md:table-cell">Author</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Stock</TableHead>
-                      <TableHead>Category</TableHead>
+                      <TableHead className="hidden md:table-cell">Category</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -525,11 +525,11 @@ export default function ProductsPage() {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>{product.author}</TableCell>
+                        <TableCell className="font-medium max-w-48 truncate">{product.name}</TableCell>
+                        <TableCell className="hidden md:table-cell">{product.author}</TableCell>
                         <TableCell>रु{product.price.toFixed(2)}</TableCell>
                         <TableCell>{product.stock}</TableCell>
-                        <TableCell>{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
+                        <TableCell className="hidden md:table-cell">{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
                         <TableCell className="text-right">
                            <DropdownMenu>
                               <DropdownMenuTrigger asChild>
