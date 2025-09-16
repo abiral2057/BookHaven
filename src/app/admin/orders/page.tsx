@@ -101,9 +101,9 @@ export default function OrdersPage() {
             A list of all orders placed in your store.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {isLoading ? (
-            <div className="text-center py-12">Loading orders...</div>
+            <div className="text-center py-12 p-6">Loading orders...</div>
           ) : orders.length > 0 ? (
             <Table>
               <TableHeader>
@@ -157,7 +157,7 @@ export default function OrdersPage() {
               </TableBody>
             </Table>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-12 text-muted-foreground p-6">
               No orders have been placed yet.
             </div>
           )}
