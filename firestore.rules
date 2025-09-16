@@ -2,33 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Test writes for connection check
-    match /_test_writes/{userId} {
-      allow write: if request.auth.uid == userId;
-    }
-
-    // Products can be read by anyone, and written to by anyone (for the admin panel)
-    match /products/{productId} {
+    // Allow public read and write access to all collections
+    match /{document=**} {
       allow read, write: if true;
-    }
-
-    // Categories can be read by anyone, and written to by anyone (for the admin panel)
-    match /categories/{categoryId} {
-      allow read, write: if true;
-    }
-    
-    // Customers can be read by anyone, and written to by anyone (for the admin panel)
-    match /customers/{customerId} {
-      allow read, write: if true;
-    }
-
-    // Orders can be created by authenticated users.
-    // They can only be read/listed if the user's ID matches the order's userId.
-    match /orders/{orderId} {
-      allow create: if request.auth != null;
-      allow read: if request.auth.uid == resource.data.userId;
-      allow list: if request.auth.uid == request.query.where.userId;
     }
   }
 }
