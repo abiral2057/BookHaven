@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Book, ShoppingCart, ArrowLeft, Heart, Share2, Barcode } from "lucide-react";
+import { Book, ShoppingCart, ArrowLeft, Heart, Share2, Barcode, Star } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +56,8 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
   const { toast } = useToast();
 
   const isProductInWishlist = product ? wishlist.some(item => item.id === product.id) : false;
+  const rating = 4.5; // Dummy rating
+  const reviewCount = 82; // Dummy review count
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -209,6 +211,15 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{product.name}</h1>
             <p className="mt-2 text-xl text-muted-foreground">{product.author}</p>
             
+             <div className="mt-4 flex items-center gap-2">
+                <div className="flex items-center gap-0.5">
+                   {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={cn("h-5 w-5", i < Math.floor(rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
+                    ))}
+                </div>
+                <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>
+             </div>
+
             <p className="mt-6 text-3xl font-bold text-primary">रु{product.price.toFixed(2)}</p>
 
             <div className="mt-6 text-base text-foreground/80 prose prose-invert max-w-none">
