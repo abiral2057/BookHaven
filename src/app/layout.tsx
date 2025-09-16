@@ -1,4 +1,5 @@
 
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,6 +7,7 @@ import { CartProvider } from '@/hooks/use-cart';
 import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from 'next-themes';
 import { WishlistProvider } from '@/hooks/use-wishlist';
+import { BottomNavbar } from '@/components/layout/bottom-navbar';
 
 export const metadata: Metadata = {
   title: 'BookHaven',
@@ -27,7 +29,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased pb-20 md:pb-0">
          <ThemeProvider
             attribute="class"
             defaultTheme="light"
@@ -38,6 +40,7 @@ export default function RootLayout({
               <CartProvider>
                 <WishlistProvider>
                   {children}
+                  <BottomNavbar />
                   <Toaster />
                 </WishlistProvider>
               </CartProvider>

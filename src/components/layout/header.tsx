@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Book, LogOut, ShieldCheck, User, Menu, X, LogIn, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import { BottomNavbar } from './bottom-navbar';
 
 function UserButton() {
     const { user, signInWithGoogle, logout, loading, isAdmin } = useAuth();
@@ -147,62 +148,13 @@ export function Header() {
               </div>
               <ThemeToggle />
               <div className="md:hidden flex items-center gap-1">
-                 <Button variant="ghost" size="icon" asChild className="relative">
-                    <Link href="/wishlist">
-                        <Heart className="h-6 w-6" />
-                         {wishlistCount > 0 && (
-                          <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                            {wishlistCount}
-                          </span>
-                        )}
-                    </Link>
-                </Button>
-                 <CartSheet />
-                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-                  <Menu className="h-6 w-6" />
-                </Button>
+                <UserButton />
               </div>
             </div>
           </div>
         </header>
 
-        {/* Mobile Menu */}
-        <div 
-          className={cn(
-            "fixed inset-0 z-50 bg-background/95 backdrop-blur-sm md:hidden",
-            "transition-opacity duration-300 ease-in-out",
-            isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}
-        >
-          <div className="p-4 flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <Book className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-foreground">BookHaven</span>
-            </Link>
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-              <X className="h-6 w-6" />
-            </Button>
-          </div>
-          <nav className="flex flex-col items-center justify-center gap-6 mt-16 text-center">
-            {navItems.map((item) => (
-                <Link 
-                    key={item.label}
-                    href={item.href} 
-                    className={cn(
-                        "text-2xl font-medium transition-colors",
-                        pathname === item.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                    )}
-                >
-                    {item.label}
-                </Link>
-            ))}
-             <div className="mt-8 flex flex-col items-center gap-4 w-full px-8">
-                <div className="pt-8 border-t border-border w-full flex justify-center">
-                  <UserButton />
-                </div>
-             </div>
-          </nav>
-        </div>
+        {/* Mobile Menu (Now handled by BottomNavbar, this can be removed or repurposed) */}
       </>
   );
 }
