@@ -32,9 +32,11 @@ export interface Product {
   isbn?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  reviewCount?: number;
+  averageRating?: number;
 }
 
-export type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt">;
+export type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt" | "reviewCount" | "averageRating" >;
 
 export interface Category {
     id: string;
@@ -93,6 +95,8 @@ export const addProduct = async (product: ProductInput): Promise<string> => {
   try {
     const docRef = await addDoc(collection(db, "products"), {
       ...product,
+      reviewCount: 0,
+      averageRating: 0,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -417,17 +421,47 @@ export const addReview = async (review: ReviewInput): Promise<string> => {
   if (!user || user.uid !== review.userId) {
     throw new Error("User is not authenticated to add this review.");
   }
+  const reviewRef = collection(db, "reviews");
+  const productRef = doc(db, "products", review.productId);
+
   try {
-    const docRef = await addDoc(collection(db, "reviews"), {
-      ...review,
-      createdAt: serverTimestamp(),
+    const newReviewRef = doc(reviewRef); // Create a new doc ref for the review
+
+    await runTransaction(db, async (transaction) => {
+      const productDoc = await transaction.get(productRef);
+      if (!productDoc.exists()) {
+        throw "Product not found!";
+      }
+
+      // Add the new review
+      transaction.set(newReviewRef, {
+        ...review,
+        createdAt: serverTimestamp(),
+      });
+
+      // Update the product's review aggregates
+      const productData = productDoc.data();
+      const currentReviewCount = productData.reviewCount || 0;
+      const currentAverageRating = productData.averageRating || 0;
+
+      const newReviewCount = currentReviewCount + 1;
+      const newAverageRating =
+        (currentAverageRating * currentReviewCount + review.rating) / newReviewCount;
+
+      transaction.update(productRef, {
+        reviewCount: newReviewCount,
+        averageRating: newAverageRating,
+        updatedAt: serverTimestamp(),
+      });
     });
-    return docRef.id;
+
+    return newReviewRef.id;
   } catch (e) {
-    console.error("Error adding review: ", e);
+    console.error("Error adding review and updating product: ", e);
     throw new Error("Could not add review");
   }
 };
+
 
 export const getReviewsByProductId = async (productId: string): Promise<Review[]> => {
   try {
