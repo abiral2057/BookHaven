@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
-import { Book, ArrowRight, ShoppingCart, User, ShieldCheck } from 'lucide-react';
+import { Book, ArrowRight, ShoppingCart, User, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product } from '@/lib/db';
@@ -67,7 +67,7 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 function UserButton() {
-    const { user, signInWithGoogle, logout, isAdmin, loading } = useAuth();
+    const { user, signInWithGoogle, logout, loading } = useAuth();
 
     const getInitials = (name: string | null | undefined) => {
         if (!name) return "??";
@@ -87,7 +87,7 @@ function UserButton() {
           <>
             <Button onClick={signInWithGoogle} variant="outline">Login</Button>
             <Button asChild variant="ghost">
-                <Link href="/admin/login"><ShieldCheck className="mr-2 h-4 w-4" />Admin Login</Link>
+                <Link href="/admin/login"><ShieldCheck className="mr-2 h-4 w-4" />Admin</Link>
             </Button>
           </>
         )
@@ -119,6 +119,7 @@ function UserButton() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
+                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>

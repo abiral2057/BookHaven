@@ -31,13 +31,13 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (authLoading) {
       return;
     }
-    if (!user) {
+    if (!isAdmin) {
       setIsLoading(false);
       return;
     }
@@ -59,7 +59,7 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, [toast, user, authLoading]);
+  }, [toast, isAdmin, authLoading]);
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {

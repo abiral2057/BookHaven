@@ -30,8 +30,8 @@ export default function AdminLoginPage() {
         return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
     }
 
+    // This prevents flicker of the login form if already logged in and redirecting.
     if (!loading && isAdmin) {
-        // This prevents flicker of the login form if already logged in.
         return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
     }
 

@@ -29,15 +29,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setLoading(true);
       setUser(user);
+      // Check session storage for simple admin on auth state change
+      const sessionAdmin = sessionStorage.getItem('isAdminLoggedIn');
+      if (sessionAdmin === 'true') {
+          setSimpleAdmin(true);
+      } else {
+          setSimpleAdmin(false);
+      }
       setLoading(false);
     });
-
-    // Check session storage for simple admin
-    const sessionAdmin = sessionStorage.getItem('isAdminLoggedIn');
-    if (sessionAdmin === 'true') {
-        setSimpleAdmin(true);
-    }
-
 
     return () => unsubscribe();
   }, []);
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener will handle state updates.
+      // The onAuthStateChanged listener will handle user state updates.
     } catch (error) {
       console.error("Error signing in with Google: ", error);
       throw error;

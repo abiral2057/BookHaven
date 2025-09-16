@@ -24,7 +24,7 @@ function getStatusVariant(status: Order['status']) {
 };
 
 export default function DashboardPage() {
-    const { user } = useAuth();
+    const { isAdmin, loading: authLoading } = useAuth();
     const [recentOrders, setRecentOrders] = useState<Order[]>([]);
     const [topProducts, setTopProducts] = useState<Product[]>([]);
     const [stats, setStats] = useState({
@@ -36,7 +36,11 @@ export default function DashboardPage() {
     const { toast } = useToast();
 
     useEffect(() => {
-        if (!user) return;
+        if (authLoading) return;
+        if (!isAdmin) {
+            setIsLoading(false);
+            return;
+        };
 
         const fetchData = async () => {
             setIsLoading(true);
@@ -72,7 +76,7 @@ export default function DashboardPage() {
         };
 
         fetchData();
-    }, [toast, user]);
+    }, [toast, isAdmin, authLoading]);
 
     const statCards = [
         { title: "Total Revenue", value: `₹${stats.totalRevenue.toFixed(2)}`, icon: DollarSign },
