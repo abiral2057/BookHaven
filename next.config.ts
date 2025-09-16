@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
-        pathname: '/**',-
+        pathname: '/**',
       },
       {
         protocol: 'https',
@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'img.drz.lazcdn.com',
         port: '',
-pathname: '/**',
+        pathname: '/**',
       },
     ],
   },
