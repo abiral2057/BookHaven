@@ -70,14 +70,14 @@ function CartItem({ item }: { item: CartItem }) {
 }
 
 export function CartSheet() {
-  const { cartItems, cartCount, cartTotal } = useCart();
+  const { cartItems, cartCount, cartTotal, isMounted } = useCart();
 
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="ghost" className="relative">
           <ShoppingCart />
-          {cartCount > 0 && (
+          {isMounted && cartCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {cartCount}
             </span>
@@ -87,9 +87,9 @@ export function CartSheet() {
       </SheetTrigger>
       <SheetContent className="flex flex-col">
         <SheetHeader>
-          <SheetTitle>Your Shopping Cart ({cartCount})</SheetTitle>
+          <SheetTitle>Your Shopping Cart ({isMounted ? cartCount : 0})</SheetTitle>
         </SheetHeader>
-        {cartCount > 0 ? (
+        {isMounted && cartCount > 0 ? (
           <>
             <ScrollArea className="flex-1 -mx-6">
               <div className="px-6 divide-y divide-border">

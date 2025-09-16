@@ -17,34 +17,40 @@ interface CartContextType {
   clearCart: () => void;
   cartTotal: number;
   cartCount: number;
+  isMounted: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
     // Lazy initialization from localStorage
-    if (typeof window === 'undefined') {
-      return [];
-    }
     try {
       const savedCart = localStorage.getItem('bookhaven-cart');
-      return savedCart ? JSON.parse(savedCart) : [];
+      if (savedCart) {
+        setCartItems(JSON.parse(savedCart));
+      }
     } catch (error) {
       console.error('Failed to parse cart from localStorage', error);
-      return [];
+      setCartItems([]);
     }
-  });
+  }, []);
 
   useEffect(() => {
     // Persist cart to localStorage
-    try {
-      localStorage.setItem('bookhaven-cart', JSON.stringify(cartItems));
-    } catch (error) {
-      console.error('Failed to save cart to localStorage', error);
+    if(isMounted) {
+      try {
+        localStorage.setItem('bookhaven-cart', JSON.stringify(cartItems));
+      } catch (error) {
+        console.error('Failed to save cart to localStorage', error);
+      }
     }
-  }, [cartItems]);
+  }, [cartItems, isMounted]);
 
   const addToCart = (product: Product) => {
     setCartItems(prevItems => {
@@ -120,6 +126,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     clearCart,
     cartTotal,
     cartCount,
+    isMounted,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

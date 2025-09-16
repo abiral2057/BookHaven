@@ -17,12 +17,12 @@ const navItems = [
 
 export function BottomNavbar() {
   const pathname = usePathname();
-  const { wishlist } = useWishlist();
-  const { cartCount } = useCart();
+  const { wishlist, isMounted: isWishlistMounted } = useWishlist();
+  const { cartCount, isMounted: isCartMounted } = useCart();
 
   const getCountForPath = (path: string) => {
-    if (path === '/wishlist') return wishlist.length;
-    if (path === '/checkout') return cartCount;
+    if (path === '/wishlist') return isWishlistMounted ? wishlist.length : 0;
+    if (path === '/checkout') return isCartMounted ? cartCount : 0;
     return 0;
   }
 

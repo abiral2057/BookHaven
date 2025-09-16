@@ -94,7 +94,7 @@ function UserButton() {
 export function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { wishlist } = useWishlist();
+  const { wishlist, isMounted: isWishlistMounted } = useWishlist();
   const wishlistCount = wishlist.length;
 
   const navItems = [
@@ -135,7 +135,7 @@ export function Header() {
                 <Button variant="ghost" asChild className="relative">
                     <Link href="/wishlist">
                         <Heart />
-                        {wishlistCount > 0 && (
+                        {isWishlistMounted && wishlistCount > 0 && (
                           <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                             {wishlistCount}
                           </span>
