@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -474,70 +475,84 @@ export default function ProductsPage() {
             {isLoading ? (
               <div className="text-center py-12">Loading books...</div>
             ) : products.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cover</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        {product.images && product.images[0] ? (
-                           <Image
-                            src={product.images[0]}
-                            alt={product.name}
-                            width={64}
-                            height={96}
-                            className="rounded-md object-cover"
-                          />
-                        ) : (
-                          <div className="h-24 w-16 bg-muted rounded-md flex items-center justify-center">
-                            <Book className="h-8 w-8 text-muted-foreground"/>
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.author}</TableCell>
-                      <TableCell>₹{product.price.toFixed(2)}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
-                      <TableCell className="text-right">
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditClick(product)}>
-                                <Edit className="mr-2 h-4 w-4"/>
-                                Edit
-                              </DropdownMenuItem>
-                              <AlertDialogTrigger asChild>
-                                  <button
-                                    className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full"
-                                    onClick={() => setProductToDelete(product)}
-                                  >
-                                    <Trash className="mr-2 h-4 w-4 text-destructive" />
-                                    <span className="text-destructive">Delete</span>
-                                  </button>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                      </TableCell>
+              <AlertDialog>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Cover</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          {product.images && product.images[0] ? (
+                             <Image
+                              src={product.images[0]}
+                              alt={product.name}
+                              width={64}
+                              height={96}
+                              className="rounded-md object-cover"
+                            />
+                          ) : (
+                            <div className="h-24 w-16 bg-muted rounded-md flex items-center justify-center">
+                              <Book className="h-8 w-8 text-muted-foreground"/>
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{product.author}</TableCell>
+                        <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                        <TableCell>{product.stock}</TableCell>
+                        <TableCell>{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
+                        <TableCell className="text-right">
+                           <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditClick(product)}>
+                                  <Edit className="mr-2 h-4 w-4"/>
+                                  Edit
+                                </DropdownMenuItem>
+                                <AlertDialogTrigger asChild>
+                                    <button
+                                      className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full"
+                                      onClick={() => setProductToDelete(product)}
+                                    >
+                                      <Trash className="mr-2 h-4 w-4 text-destructive" />
+                                      <span className="text-destructive">Delete</span>
+                                    </button>
+                                  </AlertDialogTrigger>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                        This will permanently delete the book &quot;{productToDelete?.name}&quot;. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setProductToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             ) : (
               <div className="text-center py-12">
                 <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -552,20 +567,6 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       )}
-       <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the book &quot;{productToDelete?.name}&quot;. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setProductToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
