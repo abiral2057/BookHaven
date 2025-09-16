@@ -8,10 +8,13 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { checkDbConnection } from '@/lib/firebase';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 
 const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   Pending: 'default',
@@ -67,6 +70,44 @@ export default function CustomerDashboardPage() {
     }
   }, [user, toast, authLoading]);
 
+  const handleDownloadInvoice = (order: Order) => {
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(20);
+    doc.text("Invoice", 105, 20, { align: "center" });
+
+    // Order Details
+    doc.setFontSize(12);
+    doc.text(`Order ID: ${order.id}`, 14, 35);
+    doc.text(`Order Date: ${format(order.createdAt, 'PPpp')}`, 14, 42);
+    doc.text(`Customer: ${order.customer.name}`, 14, 49);
+    doc.text(`Email: ${order.customer.email}`, 14, 56);
+    
+    // Items Table
+    autoTable(doc, {
+      startY: 65,
+      head: [['Item', 'Author', 'Quantity', 'Price', 'Total']],
+      body: order.items.map(item => [
+        item.name,
+        item.author,
+        item.quantity,
+        `₹${item.price.toFixed(2)}`,
+        `₹${(item.price * item.quantity).toFixed(2)}`
+      ]),
+      headStyles: { fillColor: [34, 65, 50] },
+    });
+    
+    // Grand Total
+    const finalY = (doc as any).lastAutoTable.finalY;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total: ₹${order.total.toFixed(2)}`, 14, finalY + 15);
+
+    // Save PDF
+    doc.save(`invoice-${order.id}.pdf`);
+  };
+
   const getStatusVariant = (status: Order['status']) => {
      return statusVariants[status] || 'default';
   };
@@ -99,6 +140,7 @@ export default function CustomerDashboardPage() {
                   <TableHead>Items</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Invoice</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -111,6 +153,12 @@ export default function CustomerDashboardPage() {
                     <TableCell>₹{order.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(order)}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
