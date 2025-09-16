@@ -150,7 +150,7 @@ export default function CheckoutPage() {
                 <CardTitle>Shipping Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input id="name" {...register("name")} />
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
                        {errors.postalCode && <p className="text-destructive text-sm">{errors.postalCode.message}</p>}
                     </div>
                   </div>
-                   <Button type="submit" className="w-full mt-6" size="lg" disabled={isSubmitting}>
+                   <Button type="submit" form="checkout-form" className="w-full mt-6" size="lg" disabled={isSubmitting}>
                     {isSubmitting ? "Placing Order..." : "Place Order"}
                   </Button>
                 </form>
