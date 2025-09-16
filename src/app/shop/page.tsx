@@ -19,6 +19,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -159,27 +160,34 @@ export default function ShopPage() {
             {/* Products Grid */}
             <div className="lg:col-span-3">
               {/* Category Filters & Mobile Filter Trigger */}
-              <div className="mb-6 flex flex-wrap gap-2 items-center">
-                <Button
-                  variant={!selectedCategory ? "secondary" : "outline"}
-                  onClick={() => setSelectedCategory(null)}
-                  className="rounded-full"
-                >
-                  All
-                </Button>
-                {categories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={
-                      selectedCategory === category.id ? "secondary" : "outline"
-                    }
-                    onClick={() => setSelectedCategory(category.id)}
-                    className="rounded-full"
-                  >
-                    {category.name}
-                  </Button>
-                ))}
-                 <div className="ml-auto lg:hidden">
+               <div className="mb-6 flex items-center gap-4">
+                  <div className="flex-grow">
+                    <ScrollArea className="w-full whitespace-nowrap">
+                      <div className="flex gap-2 pb-2">
+                        <Button
+                          variant={!selectedCategory ? "secondary" : "outline"}
+                          onClick={() => setSelectedCategory(null)}
+                          className="rounded-full"
+                        >
+                          All
+                        </Button>
+                        {categories.map((category) => (
+                          <Button
+                            key={category.id}
+                            variant={
+                              selectedCategory === category.id ? "secondary" : "outline"
+                            }
+                            onClick={() => setSelectedCategory(category.id)}
+                            className="rounded-full"
+                          >
+                            {category.name}
+                          </Button>
+                        ))}
+                      </div>
+                       <ScrollBar orientation="horizontal" className="h-2" />
+                    </ScrollArea>
+                  </div>
+                 <div className="shrink-0 lg:hidden">
                     <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
                       <SheetTrigger asChild>
                         <Button variant="outline">
@@ -198,6 +206,7 @@ export default function ShopPage() {
                     </Sheet>
                   </div>
               </div>
+
 
               {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
