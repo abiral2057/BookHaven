@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // The onAuthStateChanged listener will handle user state updates.
     } catch (error) {
       console.error("Error signing in with Google: ", error);
-      throw error;
+      // We don't re-throw the error to prevent app crashes if the user closes the popup.
     }
   };
 
