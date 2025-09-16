@@ -289,7 +289,7 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, "orders");
-        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+        const q = query(ordersRef, where("userId", "==", userId));
 
         const querySnapshot = await getDocs(q);
         const orders: Order[] = [];
@@ -302,6 +302,10 @@ export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
                 createdAt: createdAtRaw?.toDate() ?? new Date()
             } as Order);
         });
+        
+        // Sort orders by date descending, as we removed it from the query
+        orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
         return orders;
     } catch (e) {
         console.error("Error getting user orders: ", e);
