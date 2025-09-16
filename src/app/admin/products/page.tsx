@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -490,7 +489,7 @@ export default function ProductsPage() {
               Here are all the books in your store.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {isLoading ? (
               <div className="text-center py-12">Loading books...</div>
             ) : products.length > 0 ? (
@@ -589,3 +588,5 @@ export default function ProductsPage() {
     </>
   );
 }
+
+    
