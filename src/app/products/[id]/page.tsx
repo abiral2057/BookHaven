@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -127,27 +128,27 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* Product Image */}
           <div className="flex justify-center items-start">
-             <Image
-                src={product.images?.[0] || 'https://picsum.photos/seed/3/600/800'}
-                alt={product.name}
-                width={600}
-                height={800}
-                className="rounded-lg shadow-2xl object-cover w-full max-w-md aspect-[2/3]"
-                data-ai-hint="book cover"
-                priority
-            />
+             <div className="w-full max-w-sm">
+                <Image
+                    src={product.images?.[0] || 'https://picsum.photos/seed/3/400/600'}
+                    alt={product.name}
+                    width={400}
+                    height={600}
+                    className="rounded-lg shadow-2xl object-contain w-full aspect-[2/3]"
+                    data-ai-hint="book cover"
+                />
+            </div>
           </div>
 
           {/* Product Details */}
           <div className="flex flex-col pt-4">
-            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{product.name}</h1>
-            <p className="mt-2 text-xl text-muted-foreground">{product.author}</p>
-            
-             {category && (
-                <div className="mt-4">
+            {category && (
+                <div className="mb-2">
                     <Badge variant="secondary">{category.name}</Badge>
                 </div>
             )}
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{product.name}</h1>
+            <p className="mt-2 text-xl text-muted-foreground">{product.author}</p>
             
             <p className="mt-6 text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
 
@@ -155,7 +156,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 <p>{product.description}</p>
             </div>
             
-            <div className="mt-8">
+            <div className="mt-auto pt-8">
                  <p className="text-sm text-muted-foreground">
                     {product.stock > 0 ? `${product.stock} copies available` : 'Out of stock'}
                 </p>
