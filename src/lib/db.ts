@@ -248,7 +248,7 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, "orders");
-        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+        const q = query(ordersRef, where("userId", "==", userId));
 
         const querySnapshot = await getDocs(q);
         const orders: Order[] = [];
