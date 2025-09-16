@@ -153,11 +153,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   return (
     <>
-     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-white/10 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2">
             <Book className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">BookHaven</span>
+            <span className="text-2xl font-bold font-headline text-foreground">BookHaven</span>
           </Link>
            <Button variant="outline" asChild className="border-primary/20 hover:bg-primary/5">
                 <Link href="/shop">
@@ -171,7 +171,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* Product Image */}
           <div className="flex justify-center items-start">
-             <div className="w-full max-w-sm">
+             <div className="w-full max-w-md">
                 <Image
                     src={product.images?.[0] || 'https://picsum.photos/seed/3/400/600'}
                     alt={product.name}
@@ -218,7 +218,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                  <p className="text-sm text-muted-foreground mb-2">
                     {product.stock > 0 ? `${product.stock} copies available` : 'Out of stock'}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Button 
                         size="lg" 
                         className="w-full bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-500 hover:to-blue-500 text-primary-foreground shadow-lg shadow-blue-500/20" 
@@ -228,14 +228,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                         <ShoppingCart className="mr-2 h-5 w-5"/>
                         {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
                     </Button>
-                     <Button variant="outline" size="lg" onClick={handleWishlistToggle}>
+                    <div className="flex gap-2">
+                     <Button variant="outline" size="lg" className="w-full" onClick={handleWishlistToggle}>
                         <Heart className={cn("mr-2 h-5 w-5", isProductInWishlist && "fill-destructive text-destructive")} />
                         Wishlist
                     </Button>
-                     <Button variant="outline" size="lg" onClick={handleShare}>
+                     <Button variant="outline" size="lg" className="w-full" onClick={handleShare}>
                         <Share2 className="mr-2 h-5 w-5"/>
                         Share
                     </Button>
+                    </div>
                 </div>
             </div>
           </div>
