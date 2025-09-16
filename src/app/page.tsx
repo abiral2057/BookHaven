@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter }from "next/navigation";
 import { Button } from '@/components/ui/button';
-import { Book, ArrowRight, ShoppingCart, User, LogOut, ShieldCheck } from 'lucide-react';
+import { Book, ArrowRight, ShoppingCart, User, LogOut, ShieldCheck, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product } from '@/lib/db';
@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 
 function ProductCard({ product }: { product: Product }) {
@@ -47,7 +48,7 @@ function ProductCard({ product }: { product: Product }) {
             alt={product.name}
             width={600}
             height={400}
-            className="object-cover w-full h-56 transition-transform duration-300 group-hover:scale-105"
+            className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
             data-ai-hint="book cover"
           />
         </div>
@@ -169,15 +170,21 @@ export default function Home() {
 
   return (
     <div className="bg-background min-h-screen">
-      <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-white/10 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+      <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2">
             <Book className="h-8 w-8 text-primary" />
             <span className="text-2xl font-bold text-foreground">BookHaven</span>
           </Link>
+          <nav className="hidden md:flex gap-6 items-center">
+            <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Home</Link>
+            <Link href="/shop" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Shop</Link>
+            <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</Link>
+          </nav>
           <div className="flex items-center gap-4">
             <CartSheet />
             <UserButton />
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -229,7 +236,7 @@ export default function Home() {
                   >
                     <CarouselContent>
                       {products.map((product) => (
-                        <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3">
+                        <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
                           <div className="p-1 h-full">
                              <ProductCard product={product} />
                           </div>
@@ -249,7 +256,7 @@ export default function Home() {
 
       </main>
 
-      <footer className="border-t border-white/10 text-muted-foreground">
+      <footer className="border-t border-border/60 text-muted-foreground">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
             <p>&copy; {new Date().getFullYear()} BookHaven. All rights reserved.</p>
         </div>
