@@ -43,7 +43,7 @@ function RelatedProductCard({ product }: { product: Product }) {
 }
 
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({ params: { id } }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +62,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       setIsLoading(true);
       try {
         const [fetchedProduct, fetchedCategories, allProds] = await Promise.all([
-            getProduct(params.id),
+            getProduct(id),
             getCategories(),
             getProducts()
         ]);
@@ -94,7 +94,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     };
 
     fetchProductData();
-  }, [params.id, toast]);
+  }, [id, toast]);
 
   if (isLoading) {
     return (
