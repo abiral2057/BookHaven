@@ -8,12 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { type Product } from '@/lib/db';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import React from 'react';
 
 export function ProductCard({ product }: { product: Product }) {
   const { toast } = useToast();
   const { addToCart } = useCart();
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
+
+  const isProductInWishlist = wishlist.some(item => item.id === product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault(); 
@@ -25,9 +31,30 @@ export function ProductCard({ product }: { product: Product }) {
     });
   };
 
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isProductInWishlist) {
+      removeFromWishlist(product.id);
+      toast({ title: "Removed from Wishlist" });
+    } else {
+      addToWishlist(product);
+      toast({ title: "Added to Wishlist" });
+    }
+  };
+
   return (
     <Link href={`/products/${product.id}`} className="block h-full group">
-      <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-sm hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 h-full flex flex-col">
+      <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-sm hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 h-full flex flex-col relative">
+        <Button 
+          onClick={handleWishlistToggle} 
+          size="icon"
+          variant="ghost"
+          className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/50 hover:bg-background"
+        >
+          <Heart className={cn("h-4 w-4 text-foreground/70", isProductInWishlist && "fill-destructive text-destructive")} />
+          <span className="sr-only">Toggle Wishlist</span>
+        </Button>
         <div className="relative bg-muted/20 aspect-[2/3] w-full">
           <Image
             src={product.images?.[0] || 'https://picsum.photos/seed/1/400/600'}

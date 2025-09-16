@@ -9,12 +9,13 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Book, Home, ShoppingCart } from "lucide-react";
+import { Book, Home, ShoppingCart, ArrowLeft, Heart, Share2 } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function RelatedProductCard({ product }: { product: Product }) {
   return (
@@ -47,7 +48,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [recommendations, setRecommendations] = useState<Product[]>([]);
 
   const { addToCart } = useCart();
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
+
+  const isProductInWishlist = product ? wishlist.some(item => item.id === product.id) : false;
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -108,6 +112,44 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     });
   };
 
+  const handleWishlistToggle = () => {
+    if (isProductInWishlist) {
+      removeFromWishlist(product.id);
+      toast({ title: "Removed from Wishlist" });
+    } else {
+      addToWishlist(product);
+      toast({ title: "Added to Wishlist" });
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: product.name,
+      text: `Check out this book: ${product.name} by ${product.author}`,
+      url: window.location.href,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback for browsers that don't support the Web Share API
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link Copied!",
+          description: "Product link copied to your clipboard.",
+        });
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      toast({
+        variant: "destructive",
+        title: "Sharing Failed",
+        description: "Could not share the product at this time.",
+      });
+    }
+  };
+
+
   return (
     <>
      <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-white/10 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
@@ -117,7 +159,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <span className="text-2xl font-bold text-foreground">BookHaven</span>
           </Link>
            <Button variant="outline" asChild className="border-primary/20 hover:bg-primary/5">
-                <Link href="/">
+                <Link href="/shop">
                     <ArrowLeft className="mr-2 h-4 w-4"/>
                     Back to Store
                 </Link>
@@ -157,18 +199,28 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
             
             <div className="mt-auto pt-8">
-                 <p className="text-sm text-muted-foreground">
+                 <p className="text-sm text-muted-foreground mb-2">
                     {product.stock > 0 ? `${product.stock} copies available` : 'Out of stock'}
                 </p>
-                <Button 
-                    size="lg" 
-                    className="w-full mt-2 bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-500 hover:to-blue-500 text-primary-foreground shadow-lg shadow-blue-500/20" 
-                    onClick={handleAddToCart}
-                    disabled={product.stock <= 0}
-                >
-                    <ShoppingCart className="mr-2 h-5 w-5"/>
-                    {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
-                </Button>
+                <div className="flex gap-2">
+                    <Button 
+                        size="lg" 
+                        className="w-full bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-500 hover:to-blue-500 text-primary-foreground shadow-lg shadow-blue-500/20" 
+                        onClick={handleAddToCart}
+                        disabled={product.stock <= 0}
+                    >
+                        <ShoppingCart className="mr-2 h-5 w-5"/>
+                        {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                    </Button>
+                     <Button variant="outline" size="lg" onClick={handleWishlistToggle}>
+                        <Heart className={cn("mr-2 h-5 w-5", isProductInWishlist && "fill-destructive text-destructive")} />
+                        Wishlist
+                    </Button>
+                     <Button variant="outline" size="lg" onClick={handleShare}>
+                        <Share2 className="mr-2 h-5 w-5"/>
+                        Share
+                    </Button>
+                </div>
             </div>
           </div>
         </div>

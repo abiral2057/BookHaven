@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -17,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Book, LogOut, ShieldCheck, User, Menu, X, LogIn } from 'lucide-react';
+import { Book, LogOut, ShieldCheck, User, Menu, X, LogIn, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
@@ -128,11 +129,22 @@ export function Header() {
             </nav>
             <div className="flex items-center gap-2 md:gap-4">
               <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" asChild>
+                    <Link href="/wishlist">
+                        <Heart />
+                        <span className="sr-only">Wishlist</span>
+                    </Link>
+                </Button>
                 <CartSheet />
                 <UserButton />
               </div>
               <ThemeToggle />
-              <div className="md:hidden flex items-center gap-2">
+              <div className="md:hidden flex items-center gap-1">
+                 <Button variant="ghost" size="icon" asChild>
+                    <Link href="/wishlist">
+                        <Heart className="h-6 w-6" />
+                    </Link>
+                </Button>
                  <CartSheet />
                 <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
                   <Menu className="h-6 w-6" />
