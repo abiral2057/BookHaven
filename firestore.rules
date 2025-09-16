@@ -1,30 +1,27 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Open access for products and categories for browsing
     match /products/{productId} {
       allow read, write: if true;
     }
-
     match /categories/{categoryId} {
       allow read, write: if true;
     }
-
-    // Open access for customers for admin panel
     match /customers/{customerId} {
-        allow read, write: if true;
+      allow read, write: if true;
     }
-
     match /orders/{orderId} {
-      // Allow order creation for anyone (e.g., guest checkout)
-      // For the admin panel, allow full unrestricted access.
-      allow create, update, delete: if true;
-
-      // A user can read their own order document directly.
-      allow get: if request.auth.uid == resource.data.userId;
-
-      // A user can LIST orders only if they are querying for their own orders.
-      allow list: if request.auth.uid == request.query.where.userId;
+      // Allow a user to create an order
+      allow create: if request.auth != null;
+      // Allow a user to read their own order
+      allow read, update: if request.auth.uid == resource.data.userId;
+      // Allow a user to list only their own orders
+      allow list: if request.query.where.userId == request.auth.uid;
+    }
+    // Allow for test writes to check DB connection
+    match /_test_writes/{userId} {
+      allow write: if request.auth.uid == userId;
     }
   }
 }
