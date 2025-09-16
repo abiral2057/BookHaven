@@ -525,7 +525,7 @@ export default function ProductsPage() {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="font-medium max-w-48 truncate">{product.name}</TableCell>
+                        <TableCell className="font-medium max-w-48 truncate" title={product.name}>{product.name}</TableCell>
                         <TableCell className="hidden md:table-cell">{product.author}</TableCell>
                         <TableCell>रु{product.price.toFixed(2)}</TableCell>
                         <TableCell>{product.stock}</TableCell>
