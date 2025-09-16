@@ -1,3 +1,4 @@
+
 import {
   collection,
   addDoc,
@@ -44,9 +45,9 @@ export interface Customer {
   id: string; // email address
   name: string;
   email: string;
-  address: string;
-  city: string;
-  postalCode: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
   firstOrderAt: Date;
 }
 
@@ -57,6 +58,11 @@ export interface Order {
   customer: {
     name: string;
     email: string;
+  };
+  shippingAddress: {
+    address: string;
+    city: string;
+    postalCode: string;
   };
   items: CartItem[];
   total: number;
@@ -144,8 +150,14 @@ export const addCustomer = async (customer: CustomerInput): Promise<string> => {
             throw new Error("Could not add customer");
         }
     } else {
-        // Existing customer, no need to update
-        return customer.email;
+       // Existing customer, update their address info
+       try {
+         await setDoc(customerRef, { ...customer }, { merge: true });
+         return customer.email;
+       } catch (e) {
+          console.error("Error updating customer: ", e);
+          throw new Error("Could not update customer");
+       }
     }
 };
 
@@ -173,14 +185,13 @@ export const getCustomers = async (): Promise<Customer[]> => {
 
 export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status">): Promise<string> => {
     try {
-        // First, ensure the customer exists
+        // First, ensure the customer exists and has up-to-date info
         await addCustomer({
             name: order.customer.name,
             email: order.customer.email,
-            // These are placeholders for now. We can expand this later.
-            address: 'N/A', 
-            city: 'N/A',
-            postalCode: 'N/A'
+            address: order.shippingAddress.address,
+            city: order.shippingAddress.city,
+            postalCode: order.shippingAddress.postalCode,
         });
 
         const docRef = await addDoc(collection(db, "orders"), {

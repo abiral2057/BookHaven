@@ -94,6 +94,11 @@ export default function CheckoutPage() {
           name: data.name,
           email: data.email,
         },
+        shippingAddress: {
+            address: data.address,
+            city: data.city,
+            postalCode: data.postalCode,
+        },
         items: cartItems,
         total: cartTotal,
         userId: user?.uid, // Associate order with logged-in user
