@@ -18,21 +18,20 @@ import { ArrowLeft } from "lucide-react";
 function RelatedProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/products/${product.id}`} className="block h-full">
-      <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-lg hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 group h-full flex flex-col">
-        <div className="relative">
+      <Card className="bg-card/50 overflow-hidden border-border/20 shadow-sm hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 group h-full flex flex-col">
+        <div className="relative aspect-[2/3] bg-muted/20">
           <Image
-            src={product.images?.[0] || 'https://picsum.photos/seed/2/600/400'}
+            src={product.images?.[0] || 'https://picsum.photos/seed/2/400/600'}
             alt={product.name}
-            width={600}
-            height={400}
-            className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
+            fill
+            className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105 p-2"
             data-ai-hint="book cover"
           />
         </div>
-        <CardContent className="p-4 flex flex-col flex-grow">
-          <h3 className="text-base font-bold text-foreground truncate">{product.name}</h3>
-          <p className="text-xs text-muted-foreground mt-1">{product.author}</p>
-          <p className="text-lg font-semibold text-primary mt-auto pt-2">₹{product.price.toFixed(2)}</p>
+        <CardContent className="p-3 flex flex-col flex-grow">
+          <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
+          <p className="text-xs text-muted-foreground mt-1 truncate">{product.author}</p>
+          <p className="text-base font-semibold text-primary mt-auto pt-2">₹{product.price.toFixed(2)}</p>
         </CardContent>
       </Card>
     </Link>
