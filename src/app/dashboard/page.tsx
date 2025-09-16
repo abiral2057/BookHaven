@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { checkDbConnection } from '@/lib/firebase';
 
 const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   Pending: 'default',
@@ -28,14 +29,26 @@ export default function CustomerDashboardPage() {
 
   useEffect(() => {
     if (authLoading) {
-        return;
+      return; // Wait until authentication state is resolved
     }
-    
+
     const fetchOrders = async () => {
       if (!user) {
+        // This case should be handled by the protected layout, but as a fallback:
         setIsLoading(false);
         return;
-      };
+      }
+
+      const { ready, error } = await checkDbConnection();
+      if (!ready) {
+        toast({
+          variant: "destructive",
+          title: "Database Connection Error",
+          description: error || "Could not connect to the database.",
+        });
+        setIsLoading(false);
+        return;
+      }
 
       try {
         const fetchedOrders = await getOrdersByUserId(user.uid);
@@ -44,8 +57,8 @@ export default function CustomerDashboardPage() {
         console.error("Error fetching orders:", error);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Could not fetch your orders.",
+          title: "Error Fetching Orders",
+          description: "Could not fetch your orders. This could be due to a network issue or security rules.",
         });
       } finally {
         setIsLoading(false);
@@ -58,6 +71,14 @@ export default function CustomerDashboardPage() {
   const getStatusVariant = (status: Order['status']) => {
      return statusVariants[status] || 'default';
   };
+  
+  if (authLoading || isLoading) {
+     return (
+        <div className="flex items-center justify-center h-full pt-24">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+        </div>
+    )
+  }
 
   return (
     <>
@@ -71,9 +92,7 @@ export default function CustomerDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="text-center py-12">Loading your orders...</div>
-          ) : orders.length > 0 ? (
+          {orders.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>

@@ -1,11 +1,41 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read and write access to all collections
-    match /{document=**} {
+  
+    // Products and Categories are public
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true; // For admin panel without auth
+    }
+    
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if true; // For admin panel without auth
+    }
+    
+    // Customers can be read by admins, and created during checkout
+    match /customers/{customerId} {
+       allow read, write: if true; // For admin panel without auth & order creation
+    }
+
+    // Orders can be created by anyone, but only read by the user who placed them or by an admin
+    match /orders/{orderId} {
+      allow create: if true; // Anyone can place an order
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if true; // For admin panel without auth
+    }
+
+    // Allow admin panel full access for management
+    match /databases/{database}/documents {
+      // This is a broad rule for the no-auth admin panel.
+      // In a production app with real admin auth, this would be more specific.
       allow read, write: if true;
+    }
+    
+    // This rule allows the connection check to work for authenticated users
+    match /_test_writes/{userId} {
+      allow read, write: if request.auth.uid == userId;
     }
   }
 }
