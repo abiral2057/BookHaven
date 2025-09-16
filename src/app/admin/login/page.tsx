@@ -8,51 +8,55 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Book, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
-        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C43.021,36.258,44,32.28,44,28C44,22.659,43.862,21.35,43.611,20.083z" />
-    </svg>
-);
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function AdminLoginPage() {
-    const { user, isAdmin, signInWithGoogle, loading } = useAuth();
+    const { isAdmin, signInWithUsername, loading } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
-    const [authAttempted, setAuthAttempted] = useState(false);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!loading && user && isAdmin) {
+        if (!loading && isAdmin) {
             router.push('/admin/dashboard');
         }
-    }, [user, isAdmin, loading, router]);
+    }, [isAdmin, loading, router]);
     
     if (loading) {
         return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
     }
 
-    // If user is already logged in and is an admin, they will be redirected by the useEffect. 
-    // This state will show a spinner during that brief period.
-    if (user && isAdmin) {
+    if (!loading && isAdmin) {
         return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
     }
 
-    const handleSignIn = async () => {
-        setAuthAttempted(false);
+    const handleSignIn = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setIsSubmitting(true);
         try {
-            await signInWithGoogle();
-            // After sign-in, onAuthStateChanged will trigger, which updates useAuth state.
-            // The useEffect above will then handle redirection if login is successful.
-            setAuthAttempted(true);
+            const success = await signInWithUsername(username, password);
+            if (success) {
+                toast({
+                    title: "Login Successful",
+                    description: "Redirecting to dashboard...",
+                });
+                router.push('/admin/dashboard');
+            } else {
+                setError('Invalid username or password.');
+            }
         } catch (error) {
              toast({
                 variant: "destructive",
-                title: "Sign-in Failed",
-                description: "Could not sign in with Google. Please try again.",
+                title: "Login Failed",
+                description: "An unexpected error occurred. Please try again.",
             });
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -67,35 +71,46 @@ export default function AdminLoginPage() {
                     <CardDescription>Sign in to access the dashboard</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {authAttempted && user && !isAdmin && (
+                    {error && (
                         <Alert variant="destructive" className="mb-4">
                             <ShieldAlert className="h-4 w-4" />
-                            <AlertTitle>Access Denied</AlertTitle>
+                            <AlertTitle>Login Failed</AlertTitle>
                             <AlertDescription>
-                                The account you signed in with does not have admin privileges. Please set the NEXT_PUBLIC_ADMIN_UID in your .env.local file with your Firebase User ID.
+                                {error}
                             </AlertDescription>
                         </Alert>
                     )}
-                     {authAttempted && !user && (
-                         <Alert variant="destructive" className="mb-4">
-                            <ShieldAlert className="h-4 w-4" />
-                            <AlertTitle>Sign-in Incomplete</AlertTitle>
-                            <AlertDescription>
-                                Sign-in was not completed. Please try again.
-                            </AlertDescription>
-                        </Alert>
-                    )}
-                    <div className="space-y-4">
+                    <form onSubmit={handleSignIn} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input 
+                                id="username" 
+                                type="text"
+                                placeholder="abiral"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input 
+                                id="password"
+                                type="password"
+                                placeholder="abiral"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
                         <Button
-                            onClick={handleSignIn}
-                            className="w-full text-lg py-6 bg-white text-gray-800 hover:bg-gray-100 border border-gray-300 shadow-sm"
-                            variant="outline"
-                            disabled={loading}
+                            type="submit"
+                            className="w-full text-lg py-6"
+                            disabled={isSubmitting}
                         >
-                            <GoogleIcon className="mr-3" />
-                            {loading ? "Signing in..." : "Sign in with Google"}
+                            {isSubmitting ? "Signing in..." : "Sign in"}
                         </Button>
-                    </div>
+                    </form>
                 </CardContent>
             </Card>
         </div>

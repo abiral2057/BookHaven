@@ -10,38 +10,40 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithUsername: (username: string, pass: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ADMIN_UID = process.env.NEXT_PUBLIC_ADMIN_UID;
+const ADMIN_USERNAME = "abiral";
+const ADMIN_PASSWORD = "abiral";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [simpleAdmin, setSimpleAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (!ADMIN_UID) {
-      console.warn("NEXT_PUBLIC_ADMIN_UID is not set in your environment variables. Admin access will be disabled.");
-    }
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setLoading(true);
       setUser(user);
-      
-      if(user && ADMIN_UID) {
-        setIsAdmin(user.uid === ADMIN_UID);
-      } else {
-        setIsAdmin(false);
-      }
-      
       setLoading(false);
     });
 
+    // Check session storage for simple admin
+    const sessionAdmin = sessionStorage.getItem('isAdminLoggedIn');
+    if (sessionAdmin === 'true') {
+        setSimpleAdmin(true);
+    }
+
+
     return () => unsubscribe();
   }, []);
+
+  const isAdmin = (user && ADMIN_UID && user.uid === ADMIN_UID) || simpleAdmin;
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -54,9 +56,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithUsername = async (username: string, pass: string): Promise<boolean> => {
+    if (username === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
+        setSimpleAdmin(true);
+        sessionStorage.setItem('isAdminLoggedIn', 'true');
+        return true;
+    }
+    return false;
+  }
+
   const logout = async () => {
     try {
       await signOut(auth);
+      setSimpleAdmin(false);
+      sessionStorage.removeItem('isAdminLoggedIn');
       // After logout, redirect to home.
       router.push('/');
     } catch (error) {
@@ -64,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, isAdmin, signInWithGoogle, logout };
+  const value = { user, loading, isAdmin, signInWithGoogle, signInWithUsername, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

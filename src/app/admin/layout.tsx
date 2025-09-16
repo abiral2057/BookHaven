@@ -6,25 +6,18 @@ import { useAuth } from '@/hooks/use-auth';
 import { AdminLayout } from '@/components/admin/admin-layout';
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
-    const { user, isAdmin, loading } = useAuth();
+    const { isAdmin, loading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
         // Wait until loading is false before making any decisions
-        if (!loading) {
-            if (!user) {
-                // If there's no user, they should go to the admin login page.
-                router.push('/admin/login');
-            } else if (!isAdmin) {
-                // If there is a user, but they are NOT an admin,
-                // they should also be sent to the login page, which will show an error.
-                router.push('/admin/login');
-            }
+        if (!loading && !isAdmin) {
+             router.push('/admin/login');
         }
-    }, [user, isAdmin, loading, router]);
+    }, [isAdmin, loading, router]);
     
     // While loading, or if not an admin yet, show a loading spinner
-    if (loading || !isAdmin || !user) {
+    if (loading || !isAdmin) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
