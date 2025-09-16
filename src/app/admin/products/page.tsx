@@ -495,41 +495,50 @@ export default function ProductsPage() {
             ) : products.length > 0 ? (
               <AlertDialog>
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="hidden md:table-header-group">
                     <TableRow>
-                      <TableHead>Cover</TableHead>
+                      <TableHead className="w-[80px]">Cover</TableHead>
                       <TableHead>Title</TableHead>
-                      <TableHead className="hidden md:table-cell">Author</TableHead>
+                      <TableHead>Author</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Stock</TableHead>
-                      <TableHead className="hidden md:table-cell">Category</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead className="w-[100px] text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          {product.images && product.images[0] ? (
+                      <TableRow key={product.id} className="grid grid-cols-3 p-4 gap-4 md:table-row md:p-0 md:grid-cols-none">
+                        <TableCell className="p-0 col-span-1 md:w-[80px]">
+                           {product.images && product.images[0] ? (
                              <Image
                               src={product.images[0]}
                               alt={product.name}
                               width={40}
                               height={60}
-                              className="rounded-md object-cover"
+                              className="rounded-md object-cover w-full h-auto aspect-[2/3] md:w-10 md:h-auto"
                             />
                           ) : (
-                            <div className="h-16 w-12 bg-muted rounded-md flex items-center justify-center">
+                            <div className="h-full w-full bg-muted rounded-md flex items-center justify-center">
                               <Book className="h-6 w-6 text-muted-foreground"/>
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="font-medium max-w-48 truncate" title={product.name}>{product.name}</TableCell>
+
+                        <TableCell className="p-0 col-span-2 space-y-1 md:table-cell">
+                            <p className="font-medium md:font-normal" title={product.name}>{product.name}</p>
+                            <p className="text-sm text-muted-foreground md:hidden">{product.author}</p>
+                            <p className="md:hidden">
+                                <span className="font-bold">रु{product.price.toFixed(2)}</span> - <span className="text-muted-foreground">Stock: {product.stock}</span>
+                            </p>
+                        </TableCell>
+                        
                         <TableCell className="hidden md:table-cell">{product.author}</TableCell>
-                        <TableCell>रु{product.price.toFixed(2)}</TableCell>
-                        <TableCell>{product.stock}</TableCell>
+                        <TableCell className="hidden md:table-cell">रु{product.price.toFixed(2)}</TableCell>
+                        <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
                         <TableCell className="hidden md:table-cell">{categories.find(c => c.id === product.category)?.name || 'N/A'}</TableCell>
-                        <TableCell className="text-right">
+                        
+                        <TableCell className="p-0 col-span-3 flex justify-end items-center md:table-cell md:w-[100px] md:text-right">
                            <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -588,5 +597,7 @@ export default function ProductsPage() {
     </>
   );
 }
+
+    
 
     
