@@ -67,7 +67,7 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 function UserButton() {
-    const { user, signInWithGoogle, logout, isAdmin } = useAuth();
+    const { user, signInWithGoogle, logout, isAdmin, loading } = useAuth();
 
     const getInitials = (name: string | null | undefined) => {
         if (!name) return "??";
@@ -76,6 +76,10 @@ function UserButton() {
             return `${names[0][0]}${names[1][0]}`.toUpperCase();
         }
         return name.substring(0, 2).toUpperCase();
+    }
+
+    if (loading) {
+      return <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />;
     }
 
     if (!user) {

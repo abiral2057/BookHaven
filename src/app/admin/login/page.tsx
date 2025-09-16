@@ -30,7 +30,13 @@ export default function AdminLoginPage() {
         }
     }, [user, isAdmin, loading, router]);
     
-    if(loading || (!loading && user && isAdmin)) {
+    if (loading) {
+        return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
+    }
+
+    // If user is already logged in and is an admin, they will be redirected by the useEffect. 
+    // This state will show a spinner during that brief period.
+    if (user && isAdmin) {
         return <div className="flex items-center justify-center min-h-screen bg-background"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>
     }
 
@@ -38,8 +44,9 @@ export default function AdminLoginPage() {
         setAuthAttempted(false);
         try {
             await signInWithGoogle();
+            // After sign-in, onAuthStateChanged will trigger, which updates useAuth state.
+            // The useEffect above will then handle redirection if login is successful.
             setAuthAttempted(true);
-            // The useEffect will handle redirection if successful
         } catch (error) {
              toast({
                 variant: "destructive",
@@ -66,6 +73,15 @@ export default function AdminLoginPage() {
                             <AlertTitle>Access Denied</AlertTitle>
                             <AlertDescription>
                                 The account you signed in with does not have admin privileges. Please set the NEXT_PUBLIC_ADMIN_UID in your .env.local file with your Firebase User ID.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                     {authAttempted && !user && (
+                         <Alert variant="destructive" className="mb-4">
+                            <ShieldAlert className="h-4 w-4" />
+                            <AlertTitle>Sign-in Incomplete</AlertTitle>
+                            <AlertDescription>
+                                Sign-in was not completed. Please try again.
                             </AlertDescription>
                         </Alert>
                     )}
