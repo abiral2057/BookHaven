@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { checkDbConnection } from '@/lib/firebase';
 
 const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   Pending: 'default',
@@ -31,18 +31,20 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { isAdmin, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (authLoading) {
-      return;
-    }
-    if (!isAdmin) {
-      setIsLoading(false);
-      return;
-    }
-
     const fetchOrders = async () => {
+      const { ready, error } = await checkDbConnection();
+      if (!ready) {
+        toast({
+          variant: "destructive",
+          title: "Database Connection Error",
+          description: error || "Could not connect to the database.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const fetchedOrders = await getOrders();
         setOrders(fetchedOrders);
@@ -59,7 +61,7 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, [toast, isAdmin, authLoading]);
+  }, [toast]);
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {

@@ -7,6 +7,7 @@ import { getCustomers, type Customer } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { checkDbConnection } from '@/lib/firebase';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -15,6 +16,17 @@ export default function CustomersPage() {
 
   useEffect(() => {
     const fetchCustomers = async () => {
+      const { ready, error } = await checkDbConnection();
+      if (!ready) {
+        toast({
+          variant: "destructive",
+          title: "Database Connection Error",
+          description: error || "Could not connect to the database.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const fetchedCustomers = await getCustomers();
         setCustomers(fetchedCustomers);
