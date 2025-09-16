@@ -161,6 +161,24 @@ export default function ShopPage() {
             <div className="lg:col-span-3">
               {/* Category Filters & Mobile Filter Trigger */}
                <div className="mb-6 flex items-center gap-4">
+                 <div className="lg:hidden">
+                    <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
+                      <SheetTrigger asChild>
+                        <Button variant="outline">
+                           <Filter className="mr-2 h-4 w-4"/>
+                           Filters
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent>
+                        <SheetHeader>
+                            <SheetTitle className="text-2xl">Filters</SheetTitle>
+                        </SheetHeader>
+                        <div className="p-4">
+                            <FilterSidebarContent />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
                   <div className="flex-grow">
                     <ScrollArea className="w-full whitespace-nowrap">
                       <div className="flex gap-2 pb-2">
@@ -186,24 +204,6 @@ export default function ShopPage() {
                       </div>
                        <ScrollBar orientation="horizontal" className="h-2" />
                     </ScrollArea>
-                  </div>
-                 <div className="shrink-0 lg:hidden">
-                    <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
-                      <SheetTrigger asChild>
-                        <Button variant="outline">
-                           <Filter className="mr-2 h-4 w-4"/>
-                           Filters
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent>
-                        <SheetHeader>
-                            <SheetTitle className="text-2xl">Filters</SheetTitle>
-                        </SheetHeader>
-                        <div className="p-4">
-                            <FilterSidebarContent />
-                        </div>
-                      </SheetContent>
-                    </Sheet>
                   </div>
               </div>
 
