@@ -20,7 +20,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import { Book, ArrowLeft } from 'lucide-react';
+import { Book, ArrowLeft, Trash2 } from 'lucide-react';
 import { addOrder } from "@/lib/db";
 import { useEffect } from "react";
 
@@ -34,7 +34,7 @@ const shippingSchema = z.object({
 
 type ShippingFormValues = z.infer<typeof shippingSchema>;
 
-function OrderSummaryItem({ item }: { item: CartItem }) {
+function OrderSummaryItem({ item, onRemove }: { item: CartItem, onRemove: (id: string) => void }) {
   return (
     <div className="flex items-center gap-4 py-2">
       <Image
@@ -50,15 +50,20 @@ function OrderSummaryItem({ item }: { item: CartItem }) {
           Qty: {item.quantity}
         </p>
       </div>
-      <p className="font-medium">
-        रु{(item.price * item.quantity).toFixed(2)}
-      </p>
+      <div className="flex items-center gap-4">
+        <p className="font-medium">
+            रु{(item.price * item.quantity).toFixed(2)}
+        </p>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => onRemove(item.id)}>
+            <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartTotal, clearCart, removeFromCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -207,9 +212,9 @@ export default function CheckoutPage() {
                 <CardHeader>
                     <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 divide-y">
                     {cartItems.map((item) => (
-                    <OrderSummaryItem key={item.id} item={item} />
+                    <OrderSummaryItem key={item.id} item={item} onRemove={removeFromCart} />
                     ))}
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-xl font-bold border-t pt-6">
