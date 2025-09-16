@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getProduct, getProducts, Product } from "@/lib/db";
+import { getProduct, getProducts, Product, getReviewsByProductId, Review } from "@/lib/db";
 import { getCategories, Category } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import BarcodeComponent from 'react-barcode';
 import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { ProductReviews } from "@/components/product/product-reviews";
 
 function RelatedProductCard({ product }: { product: Product }) {
   return (
@@ -46,6 +47,7 @@ function RelatedProductCard({ product }: { product: Product }) {
 export default function ProductPage({ params: { id } }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -56,17 +58,20 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
   const { toast } = useToast();
 
   const isProductInWishlist = product ? wishlist.some(item => item.id === product.id) : false;
-  const rating = 4.5; // Dummy rating
-  const reviewCount = 82; // Dummy review count
+  
+  const reviewCount = reviews.length;
+  const averageRating = reviewCount > 0 ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviewCount : 0;
+
 
   useEffect(() => {
     const fetchProductData = async () => {
       setIsLoading(true);
       try {
-        const [fetchedProduct, fetchedCategories, allProds] = await Promise.all([
+        const [fetchedProduct, fetchedCategories, allProds, fetchedReviews] = await Promise.all([
             getProduct(id),
             getCategories(),
-            getProducts()
+            getProducts(),
+            getReviewsByProductId(id),
         ]);
 
         if (!fetchedProduct) {
@@ -74,6 +79,7 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
         }
         
         setProduct(fetchedProduct);
+        setReviews(fetchedReviews);
         
         const productCategory = fetchedCategories.find(c => c.id === fetchedProduct.category);
         setCategory(productCategory || null);
@@ -97,6 +103,11 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
 
     fetchProductData();
   }, [id, toast]);
+
+  const handleNewReview = (review: Review) => {
+    setReviews([review, ...reviews]);
+  };
+
 
   if (isLoading) {
     return (
@@ -214,7 +225,7 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
              <div className="mt-4 flex items-center gap-2">
                 <div className="flex items-center gap-0.5">
                    {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={cn("h-5 w-5", i < Math.floor(rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
+                        <Star key={i} className={cn("h-5 w-5", i < Math.floor(averageRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
                     ))}
                 </div>
                 <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>
@@ -280,6 +291,10 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
           </div>
         </div>
         
+        {/* Reviews Section */}
+        <ProductReviews productId={product.id} reviews={reviews} onNewReview={handleNewReview} />
+
+
         {/* Related Products */}
         {recommendations.length > 0 && (
             <section className="mt-24">
@@ -295,3 +310,4 @@ export default function ProductPage({ params: { id } }: { params: { id: string }
     </>
   );
 }
+

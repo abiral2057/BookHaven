@@ -1,4 +1,5 @@
 
+
 import {
   collection,
   addDoc,
@@ -73,6 +74,19 @@ export interface Order {
   createdAt: Date;
   userId?: string; // To associate order with a user
 }
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+}
+
+export type ReviewInput = Omit<Review, "id" | "createdAt">;
 
 
 export const addProduct = async (product: ProductInput): Promise<string> => {
@@ -396,4 +410,43 @@ export const getTopSellingProducts = async (count: number): Promise<Product[]> =
         console.error("Error getting top selling products: ", e);
         throw new Error("Could not get top selling products");
     }
+};
+
+export const addReview = async (review: ReviewInput): Promise<string> => {
+  const user = auth.currentUser;
+  if (!user || user.uid !== review.userId) {
+    throw new Error("User is not authenticated to add this review.");
+  }
+  try {
+    const docRef = await addDoc(collection(db, "reviews"), {
+      ...review,
+      createdAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (e) {
+    console.error("Error adding review: ", e);
+    throw new Error("Could not add review");
+  }
+};
+
+export const getReviewsByProductId = async (productId: string): Promise<Review[]> => {
+  try {
+    const reviewsRef = collection(db, "reviews");
+    const q = query(reviewsRef, where("productId", "==", productId), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    const reviews: Review[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const createdAtRaw = data.createdAt as Timestamp | null;
+      reviews.push({ 
+          id: doc.id, 
+          ...data,
+          createdAt: createdAtRaw?.toDate() ?? new Date(),
+      } as Review);
+    });
+    return reviews;
+  } catch (e) {
+    console.error("Error getting reviews: ", e);
+    throw new Error("Could not get reviews for product");
+  }
 };
