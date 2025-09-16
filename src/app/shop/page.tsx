@@ -21,6 +21,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -142,7 +143,8 @@ export default function ShopPage() {
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center mb-12">
+           <Breadcrumb />
+          <div className="text-center mb-12 mt-8">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
               Our Collection
             </h1>

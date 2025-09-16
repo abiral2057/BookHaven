@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Book, Home, ShoppingCart, ArrowLeft, Heart, Share2, Barcode } from "lucide-react";
+import { Book, ShoppingCart, ArrowLeft, Heart, Share2, Barcode } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import BarcodeComponent from 'react-barcode';
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 
 function RelatedProductCard({ product }: { product: Product }) {
   return (
@@ -47,6 +48,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [category, setCategory] = useState<Category | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
 
   const { addToCart } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
@@ -104,6 +107,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   if (!product) {
     return null; 
   }
+  
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/shop" },
+  ];
+
+  if (category) {
+    breadcrumbItems.push({ label: category.name, href: `/shop?category=${category.id}` });
+  }
+
+  breadcrumbItems.push({ label: product.name });
+
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -168,15 +183,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         </div>
       </header>
       <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
+        <Breadcrumb items={breadcrumbItems} />
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
           {/* Product Image */}
           <div className="flex justify-center items-start">
-             <div className="w-full max-w-md">
+             <div className="w-full max-w-sm">
                 <Image
-                    src={product.images?.[0] || 'https://picsum.photos/seed/3/400/600'}
+                    src={product.images?.[0] || 'https://picsum.photos/seed/3/300/450'}
                     alt={product.name}
-                    width={400}
-                    height={600}
+                    width={300}
+                    height={450}
                     className="rounded-lg shadow-2xl object-contain w-full aspect-[2/3]"
                     data-ai-hint="book cover"
                 />
@@ -195,9 +211,19 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             
             <p className="mt-6 text-3xl font-bold text-primary">रु{product.price.toFixed(2)}</p>
 
-            <div className="mt-6 text-lg text-foreground/80 prose prose-invert max-w-none">
-                <p>{product.description}</p>
+            <div className="mt-6 text-base text-foreground/80 prose prose-invert max-w-none">
+                 <p className={cn(!isDescriptionExpanded && "line-clamp-3")}>
+                    {product.description}
+                </p>
+                <Button 
+                    variant="link" 
+                    className="p-0"
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                >
+                    {isDescriptionExpanded ? "Show Less" : "Show More"}
+                </Button>
             </div>
+
 
             {product.isbn && (
                 <div className="mt-6">

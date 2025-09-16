@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -8,6 +9,7 @@ import { ProductCard } from "@/components/product/product-card";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 
 export default function WishlistPage() {
   const { wishlist } = useWishlist();
@@ -17,7 +19,8 @@ export default function WishlistPage() {
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center mb-12">
+          <Breadcrumb />
+          <div className="text-center mb-12 mt-8">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
               Your Wishlist
             </h1>
