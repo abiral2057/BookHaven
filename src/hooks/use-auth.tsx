@@ -8,67 +8,42 @@ import { useRouter } from 'next/navigation';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  isAdmin: boolean;
+  isAdmin: boolean; // Kept for potential future use, but will always be false now
   signInWithGoogle: () => Promise<void>;
-  signInWithUsername: (username: string, pass: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_USERNAME = "abiral";
-const ADMIN_PASSWORD = "abiral";
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [simpleAdmin, setSimpleAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setLoading(true);
       setUser(user);
-      // Check session storage for simple admin on auth state change
-      const sessionAdmin = sessionStorage.getItem('isAdminLoggedIn');
-      if (sessionAdmin === 'true') {
-          setSimpleAdmin(true);
-      } else {
-          setSimpleAdmin(false);
-      }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const isAdmin = simpleAdmin;
-
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener will handle user state updates.
+      // The onAuthStateChanged listener will handle user state updates and redirect.
     } catch (error) {
       console.error("Error signing in with Google: ", error);
       throw error;
     }
   };
 
-  const signInWithUsername = async (username: string, pass: string): Promise<boolean> => {
-    if (username === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
-        setSimpleAdmin(true);
-        sessionStorage.setItem('isAdminLoggedIn', 'true');
-        return true;
-    }
-    return false;
-  }
-
   const logout = async () => {
     try {
       await signOut(auth);
-      setSimpleAdmin(false);
-      sessionStorage.removeItem('isAdminLoggedIn');
       // After logout, redirect to home.
       router.push('/');
     } catch (error) {
@@ -76,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, isAdmin, signInWithGoogle, signInWithUsername, logout };
+  const value = { user, loading, isAdmin: false, signInWithGoogle, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

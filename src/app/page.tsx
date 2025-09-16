@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter }from "next/navigation";
 import { Button } from '@/components/ui/button';
 import { Book, ArrowRight, ShoppingCart, User, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
@@ -87,9 +87,9 @@ function UserButton() {
     if (!user) {
         return (
           <>
-            <Button onClick={signInWithGoogle} variant="outline">Login</Button>
+            <Button onClick={signInWithGoogle} variant="outline">Customer Login</Button>
             <Button asChild variant="ghost">
-                <Link href="/admin/login"><ShieldCheck className="mr-2 h-4 w-4" />Admin</Link>
+                <Link href="/admin/dashboard"><ShieldCheck className="mr-2 h-4 w-4" />Admin</Link>
             </Button>
           </>
         )
@@ -114,9 +114,15 @@ function UserButton() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href={isAdmin ? "/admin/dashboard" : "/dashboard"}>
+                    <Link href="/dashboard">
                         <User className="mr-2 h-4 w-4" />
                         <span>My Account</span>
+                    </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                    <Link href="/admin/dashboard">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -175,7 +181,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative h-[50vh] md:h-[60vh] flex items-center justify-center text-center text-white">
           <Image 
-            src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=2070&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop"
             alt="Library with books"
             fill
             className="object-cover"
