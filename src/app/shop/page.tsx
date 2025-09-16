@@ -179,7 +179,7 @@ export default function ShopPage() {
                       </SheetContent>
                     </Sheet>
                   </div>
-                  <div className="flex-grow">
+                  <div className="flex-grow overflow-hidden">
                     <ScrollArea className="w-full whitespace-nowrap">
                       <div className="flex gap-2 pb-2">
                         <Button
