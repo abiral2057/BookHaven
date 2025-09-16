@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -44,9 +45,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signInWithPopup(auth, provider);
       // The onAuthStateChanged listener will handle user state updates.
-    } catch (error) {
+    } catch (error: any) {
+      // Don't log an error if the user closes the popup.
+      if (error.code === 'auth/popup-closed-by-user') {
+        return;
+      }
       console.error("Error signing in with Google: ", error);
-      // We don't re-throw the error to prevent app crashes if the user closes the popup.
     }
   };
 
