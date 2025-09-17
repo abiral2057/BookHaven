@@ -21,7 +21,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import { Book, ArrowLeft, Trash2, Truck } from 'lucide-react';
+import { Book, ArrowLeft, Trash2, Truck, CreditCard, Loader2 } from 'lucide-react';
 import { addOrder } from "@/lib/db";
 import { useEffect, useState, useId } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -67,7 +67,7 @@ function OrderSummaryItem({ item, onRemove }: { item: CartItem, onRemove: (id: s
 }
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, setLastOrderItemsAndClearCart, removeFromCart, clearCart } = useCart();
+  const { cartItems, cartTotal, setLastOrderItemsAndClearCart, removeFromCart, clearCart, isMounted } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -274,7 +274,15 @@ export default function CheckoutPage() {
     }
   };
 
-  if (cartItems.length === 0 && typeof window !== 'undefined') {
+  if (!isMounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (cartItems.length === 0) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
             <h1 className="text-2xl font-bold mb-4">Your Cart is Empty</h1>
@@ -410,3 +418,5 @@ export default function CheckoutPage() {
     </>
   );
 }
+
+    
