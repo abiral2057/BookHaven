@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Search, X } from 'lucide-react';
+import { ArrowRight, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product, getTopSellingProducts } from '@/lib/db';
@@ -21,6 +21,7 @@ export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [topProducts, setTopProducts] = useState<Product[]>([]);
+  const [usedProducts, setUsedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Product[]>([]);
@@ -39,6 +40,9 @@ export default function Home() {
         setFeaturedProducts(fetchedProducts);
         setTopProducts(fetchedTopProducts);
         setAllProducts(allFetchedProducts);
+
+        const used = allFetchedProducts.filter(p => p.condition === 'Used').slice(0, 10);
+        setUsedProducts(used);
 
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -207,6 +211,40 @@ export default function Home() {
                     >
                       <CarouselContent>
                         {topProducts.map((product) => (
+                          <CarouselItem key={product.id} className="basis-2/5 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+                            <div className="p-1 h-full">
+                               <ProductCard product={product} />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="hidden sm:flex" />
+                      <CarouselNext className="hidden sm:flex" />
+                    </Carousel>
+                  )}
+              </div>
+          </section>
+        )}
+
+        {/* Used Books Section */}
+        {usedProducts.length > 0 && (
+          <section id="used-books" className="py-16 sm:py-24">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-12">
+                      <h2 className="text-4xl font-bold text-foreground">Gently Used Books</h2>
+                      <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">Great stories at even better prices. Discover our second-hand collection.</p>
+                  </div>
+                  {isLoading ? (
+                    <div className="text-center text-muted-foreground">Loading used books...</div>
+                  ) : (
+                    <Carousel
+                      opts={{
+                        align: "start",
+                      }}
+                      className="w-full"
+                    >
+                      <CarouselContent>
+                        {usedProducts.map((product) => (
                           <CarouselItem key={product.id} className="basis-2/5 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
                             <div className="p-1 h-full">
                                <ProductCard product={product} />

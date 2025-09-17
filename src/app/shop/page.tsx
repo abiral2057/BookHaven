@@ -21,6 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Card } from "@/components/ui/card";
@@ -38,6 +39,7 @@ function ShopPageComponent() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category') || null);
+  const [selectedCondition, setSelectedCondition] = useState<'all' | 'New' | 'Used'>('all');
   const [maxPrice, setMaxPrice] = useState(100);
   const [priceRange, setPriceRange] = useState([100]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -109,6 +111,7 @@ function ShopPageComponent() {
 
   const clearFilters = () => {
     setPriceRange([maxPrice]);
+    setSelectedCondition('all');
   };
 
   const filteredProducts = useMemo(() => {
@@ -123,11 +126,13 @@ function ShopPageComponent() {
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
       const matchesPrice = product.price <= priceRange[0];
-      return matchesSearch && matchesCategory && matchesPrice;
-    });
-  }, [products, searchTerm, selectedCategory, priceRange]);
+      const matchesCondition = selectedCondition === 'all' || product.condition === selectedCondition;
 
-  const hasActiveFilters = priceRange[0] < maxPrice;
+      return matchesSearch && matchesCategory && matchesPrice && matchesCondition;
+    });
+  }, [products, searchTerm, selectedCategory, priceRange, selectedCondition]);
+
+  const hasActiveFilters = priceRange[0] < maxPrice || selectedCondition !== 'all';
 
   const FilterSidebarContent = () => (
     <>
@@ -151,6 +156,32 @@ function ShopPageComponent() {
             className="mt-2"
           />
         </div>
+
+        {/* Condition Filter */}
+        <div>
+           <Label className="text-lg font-semibold">
+            Condition
+          </Label>
+          <RadioGroup
+            value={selectedCondition}
+            onValueChange={(value) => setSelectedCondition(value as 'all' | 'New' | 'Used')}
+            className="mt-2 space-y-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="all" id="cond-all" />
+              <Label htmlFor="cond-all">All</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="New" id="cond-new" />
+              <Label htmlFor="cond-new">New</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Used" id="cond-used" />
+              <Label htmlFor="cond-used">Used</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
 
         {hasActiveFilters && (
           <Button variant="ghost" onClick={clearFilters} className="w-full">
