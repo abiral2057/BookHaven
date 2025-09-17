@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from 'next/navigation';
 import { getProducts, Product, getCategories, Category } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
@@ -24,13 +25,16 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { BarcodeScanner } from "@/components/product/barcode-scanner";
 
-export default function ShopPage() {
+function ShopPageComponent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [maxPrice, setMaxPrice] = useState(100);
   const [priceRange, setPriceRange] = useState([100]);
@@ -274,4 +278,12 @@ export default function ShopPage() {
     />
     </>
   );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ShopPageComponent />
+    </Suspense>
+  )
 }

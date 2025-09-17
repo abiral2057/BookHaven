@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product, getTopSellingProducts } from '@/lib/db';
@@ -12,13 +12,17 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { ProductCard } from "@/components/product/product-card";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const router = useRouter();
   
   useEffect(() => {
     const fetchProducts = async () => {
@@ -45,6 +49,13 @@ export default function Home() {
 
     fetchProducts();
   }, [toast]);
+  
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
 
   return (
@@ -79,6 +90,27 @@ export default function Home() {
           </div>
         </section>
         
+        {/* Search Section */}
+        <section className="py-16 bg-card/50">
+            <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 className="text-3xl font-bold text-center text-foreground">Search Our Shelves</h2>
+                <p className="mt-2 text-center text-muted-foreground">Looking for something specific? Start your search here.</p>
+                 <form onSubmit={handleSearchSubmit} className="mt-8 flex gap-2">
+                    <Input 
+                        type="search" 
+                        placeholder="Search by title, author, or ISBN..."
+                        className="flex-grow text-base h-12"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <Button type="submit" size="lg" className="h-12">
+                        <Search className="mr-2 h-5 w-5" />
+                        Search
+                    </Button>
+                </form>
+            </div>
+        </section>
+
         {/* Featured Books Section */}
         <section id="books" className="py-16 sm:py-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
