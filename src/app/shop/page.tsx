@@ -11,7 +11,7 @@ import { Footer } from "@/components/layout/footer";
 import { ProductCard } from "@/components/product/product-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Search, X, Filter } from "lucide-react";
+import { BookOpen, Search, X, Filter, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -25,6 +25,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import { BarcodeScanner } from "@/components/product/barcode-scanner";
 
 function ShopPageComponent() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -34,15 +35,15 @@ function ShopPageComponent() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialSearch = searchParams.get('search') || '';
-  const initialCategory = searchParams.get('category') || null;
-
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const [suggestions, setSuggestions] = useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category') || null);
   const [maxPrice, setMaxPrice] = useState(100);
   const [priceRange, setPriceRange] = useState([100]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,7 +80,7 @@ function ShopPageComponent() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchTerm(query);
-    if (query.length > 2) {
+    if (query.length > 1) {
       const filteredSuggestions = products.filter(product =>
         (product.name && product.name.toLowerCase().includes(query.toLowerCase())) ||
         (product.author && product.author.toLowerCase().includes(query.toLowerCase())) ||
@@ -106,11 +107,18 @@ function ShopPageComponent() {
     }
     router.replace(`/shop?${params.toString()}`, { scroll: false });
   }, [searchTerm, selectedCategory, router, searchParams]);
+  
+  const handleBarcodeScan = (barcode: string) => {
+    setSearchTerm(barcode);
+    setIsScannerOpen(false);
+    toast({
+      title: "Barcode Scanned",
+      description: `Searching for: ${barcode}`,
+    });
+  };
 
 
   const clearFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory(null);
     setPriceRange([maxPrice]);
   };
 
@@ -130,8 +138,7 @@ function ShopPageComponent() {
     });
   }, [products, searchTerm, selectedCategory, priceRange]);
 
-  const hasActiveFilters =
-    searchTerm.length > 0 || selectedCategory !== null || priceRange[0] < maxPrice;
+  const hasActiveFilters = priceRange[0] < maxPrice;
 
   const FilterSidebarContent = () => (
     <>
@@ -156,11 +163,8 @@ function ShopPageComponent() {
           />
         </div>
 
-        {(searchTerm.length > 0 || priceRange[0] < maxPrice) && (
-          <Button variant="ghost" onClick={() => {
-              setSearchTerm("");
-              setPriceRange([maxPrice]);
-          }} className="w-full">
+        {hasActiveFilters && (
+          <Button variant="ghost" onClick={clearFilters} className="w-full">
             <X className="mr-2 h-4 w-4" />
             Clear Filters
           </Button>
@@ -195,11 +199,21 @@ function ShopPageComponent() {
                               id="search"
                               type="search" 
                               placeholder="Search by title, author, or ISBN..."
-                              className="flex-grow text-base h-12 pl-10"
+                              className="flex-grow text-base h-12 pl-10 pr-12"
                               value={searchTerm}
                               onChange={handleSearchChange}
                               onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                           />
+                          <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => setIsScannerOpen(true)}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                           >
+                              <ScanBarcode className="h-5 w-5" />
+                              <span className="sr-only">Scan Barcode</span>
+                           </Button>
                       </div>
                   </form>
                   {suggestions.length > 0 && (
@@ -310,7 +324,10 @@ function ShopPageComponent() {
                   <Button
                     variant="outline"
                     className="mt-6"
-                    onClick={clearFilters}
+                    onClick={() => {
+                      setSearchTerm("");
+                      clearFilters();
+                    }}
                   >
                     Reset All Filters
                   </Button>
@@ -321,6 +338,11 @@ function ShopPageComponent() {
         </div>
       </main>
       <Footer />
+       <BarcodeScanner
+            isOpen={isScannerOpen}
+            onClose={() => setIsScannerOpen(false)}
+            onScan={handleBarcodeScan}
+        />
     </div>
     </>
   );
@@ -333,5 +355,3 @@ export default function ShopPage() {
     </Suspense>
   )
 }
-
-    
