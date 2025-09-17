@@ -9,14 +9,13 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Book, ShoppingCart, ArrowLeft, Heart, Share2, Barcode, Star } from "lucide-react";
+import { Book, ShoppingCart, ArrowLeft, Heart, Share2, Star } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import BarcodeComponent from 'react-barcode';
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { ProductReviews } from "@/components/product/product-reviews";
 
@@ -98,7 +97,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             description: 'Could not load product details.'
         })
       } finally {
-        setIsLoading(false);
+        setIsLoading(true);
       }
     };
 
@@ -246,22 +245,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     {isDescriptionExpanded ? "Show Less" : "Show More"}
                 </Button>
             </div>
-
-
-            {product.isbn && (
-                <div className="mt-6">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2"><Barcode className="h-4 w-4"/> ISBN</h3>
-                    <div className="bg-white p-2 inline-block rounded-md">
-                        <BarcodeComponent 
-                            value={product.isbn} 
-                            height={50}
-                            width={1.5}
-                            displayValue={true}
-                            fontSize={14}
-                        />
-                    </div>
-                </div>
-            )}
             
             <div className="mt-auto pt-8">
                  <p className="text-sm text-muted-foreground mb-2">

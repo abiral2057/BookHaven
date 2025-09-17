@@ -105,7 +105,7 @@ function ShopPageComponent() {
       params.delete('category');
     }
     router.replace(`/shop?${params.toString()}`, { scroll: false });
-  }, [searchTerm, selectedCategory, router]);
+  }, [searchTerm, selectedCategory, router, searchParams]);
 
 
   const clearFilters = () => {
