@@ -30,6 +30,7 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
     const getCameraPermission = async () => {
       if (isOpen) {
         try {
+          // Prefer the rear camera
           const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
           streamRef.current = stream;
           setHasCameraPermission(true);
@@ -60,10 +61,11 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
 
     getCameraPermission();
 
-    // The main cleanup function for when the component unmounts
+    // The main cleanup function for when the component unmounts or isOpen changes to false
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
     };
   }, [isOpen, toast]);
@@ -96,20 +98,37 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
                 <p>Requesting camera permission...</p>
             </div>
           )}
-          {isOpen && hasCameraPermission === true && (
-            <div className="relative">
-               {/* BarcodeReader is not visible, but provides the scanning logic */}
-               <div style={{ display: 'none' }}>
+          
+          <div className="relative">
+              {/* This video element will be visible and play the camera stream */}
+              <video 
+                ref={videoRef} 
+                className="w-full aspect-video rounded-md bg-black" 
+                autoPlay 
+                muted 
+                playsInline 
+                style={{ display: hasCameraPermission ? 'block' : 'none' }}
+              />
+              
+              {/* The BarcodeReader is not visible but uses the video feed */}
+              {hasCameraPermission && (
+                  <div style={{ display: 'none' }}>
                     <BarcodeReader
                       onError={handleError}
                       onScan={handleScan}
                     />
                 </div>
-               <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted playsInline />
-               <div className="absolute inset-0 border-4 border-primary/50 rounded-md pointer-events-none" />
-               <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-500/70 animate-pulse" />
-            </div>
-          )}
+              )}
+
+              {/* Visual overlay for aiming */}
+              {hasCameraPermission && (
+                <>
+                  <div className="absolute inset-0 border-4 border-primary/50 rounded-md pointer-events-none" />
+                  <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-500/70 animate-pulse" />
+                </>
+              )}
+          </div>
+          
            {hasCameraPermission === false && (
             <Alert variant="destructive">
                 <VideoOff className="h-4 w-4" />
