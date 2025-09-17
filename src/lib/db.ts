@@ -1,5 +1,3 @@
-
-
 import {
   collection,
   addDoc,
@@ -76,7 +74,7 @@ export interface Order {
   status: "Pending" | "Confirmed" | "Shipping" | "Delivered" | "Refunded";
   createdAt: Date;
   userId?: string; // To associate order with a user
-  paymentMethod: "COD" | "eSewa";
+  paymentMethod: "COD" | "eSewa" | "Khalti";
   transactionId?: string;
 }
 
@@ -500,7 +498,13 @@ export const getOrderByTransactionId = async (transactionId: string): Promise<Or
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       const doc = querySnapshot.docs[0];
-      return { id: doc.id, ...doc.data() } as Order;
+      const data = doc.data();
+      const createdAtRaw = data.createdAt as Timestamp | null;
+      return { 
+        id: doc.id, 
+        ...data,
+        createdAt: createdAtRaw?.toDate() ?? new Date(),
+      } as Order;
     }
     return null;
   } catch (error) {
@@ -508,5 +512,3 @@ export const getOrderByTransactionId = async (transactionId: string): Promise<Or
     throw new Error('Could not verify order transaction.');
   }
 };
-
-    

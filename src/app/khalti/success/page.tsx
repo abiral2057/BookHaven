@@ -9,6 +9,7 @@ import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCart } from '@/hooks/use-cart';
 import { addOrder, getOrderByTransactionId } from '@/lib/db';
+import { verifyKhaltiPayment } from '@/ai/flows/khalti';
 
 function SuccessPageContent() {
     const searchParams = useSearchParams();
@@ -18,69 +19,68 @@ function SuccessPageContent() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const verifyPayment = async () => {
-            const data = searchParams.get('data');
-            if (!data) {
-                setError("No payment data received from eSewa.");
+        const processPayment = async () => {
+            const pidx = searchParams.get('pidx');
+            const purchase_order_id = searchParams.get('purchase_order_id');
+
+            if (!pidx || !purchase_order_id) {
+                setError("Invalid callback from Khalti. Missing parameters.");
                 setStatus('failed');
                 return;
             }
 
             try {
-                const decodedData = JSON.parse(atob(data));
-                const { transaction_uuid, total_amount, status: paymentStatus } = decodedData;
-                
-                if (paymentStatus !== 'COMPLETE') {
-                    setError(`Payment not completed. Status: ${paymentStatus}`);
-                    setStatus('failed');
-                    // Clean up local storage on failure
-                    localStorage.removeItem('pending_order_details');
-                    localStorage.removeItem('esewa_transaction_uuid');
-                    return;
-                }
-                
-                // 1. Check if an order with this transaction_uuid already exists
-                const existingOrder = await getOrderByTransactionId(transaction_uuid);
+                 // 1. Check if an order with this transaction_uuid already exists
+                const existingOrder = await getOrderByTransactionId(pidx);
                 if (existingOrder) {
                     setStatus('duplicate');
-                     // Clean up local storage as order is already processed
                     localStorage.removeItem('pending_order_details');
-                    localStorage.removeItem('esewa_transaction_uuid');
-                    // Set last order items for confirmation page, if not already set
+                    localStorage.removeItem('khalti_purchase_order_id');
                     setLastOrderItemsAndClearCart(existingOrder.items);
                     router.replace('/order-confirmation');
                     return;
                 }
+                
+                // 2. Verify payment on the server
+                const verificationResult = await verifyKhaltiPayment({ pidx });
 
-                // 2. Retrieve order details from localStorage
+                if (!verificationResult.success || verificationResult.status !== 'Completed') {
+                    setError(verificationResult.error || `Payment status is ${verificationResult.status}.`);
+                    setStatus('failed');
+                    return;
+                }
+
+                // 3. Retrieve order details from localStorage
                 const storedOrderDetails = localStorage.getItem('pending_order_details');
-                const storedTransactionId = localStorage.getItem('esewa_transaction_uuid');
+                const storedPurchaseOrderId = localStorage.getItem('khalti_purchase_order_id');
 
-                if (!storedOrderDetails || transaction_uuid !== storedTransactionId) {
+                if (!storedOrderDetails || purchase_order_id !== storedPurchaseOrderId) {
                     setError("Could not verify transaction. Local data mismatch or missing.");
                     setStatus('failed');
+                    // This could be a stale order. We shouldn't create a DB entry.
                     return;
                 }
 
                 const orderPayload = JSON.parse(storedOrderDetails);
+                const khaltiData = verificationResult.data;
 
-                // 3. Verify amount
-                if (parseFloat(total_amount).toFixed(2) !== parseFloat(orderPayload.total).toFixed(2)) {
-                    setError(`Amount mismatch. Paid: ${total_amount}, Expected: ${orderPayload.total}`);
-                    setStatus('failed');
-                    return;
+                // 4. Verify amount (Khalti amount is in paisa)
+                if (khaltiData.total_amount / 100 !== orderPayload.total) {
+                     setError(`Amount mismatch. Paid: ${khaltiData.total_amount / 100}, Expected: ${orderPayload.total}`);
+                     setStatus('failed');
+                     return;
                 }
 
-                // 4. If all checks pass, create the order in the database
-                await addOrder({
+                // 5. If all checks pass, create the order in the database
+                 await addOrder({
                     ...orderPayload,
-                    paymentMethod: 'eSewa',
-                    transactionId: transaction_uuid,
+                    paymentMethod: 'Khalti',
+                    transactionId: pidx,
                 });
                 
-                // 5. Clean up localStorage and update cart state
+                // 6. Clean up localStorage and update cart state
                 localStorage.removeItem('pending_order_details');
-                localStorage.removeItem('esewa_transaction_uuid');
+                localStorage.removeItem('khalti_purchase_order_id');
                 setLastOrderItemsAndClearCart(orderPayload.items);
 
                 setStatus('verified');
@@ -89,13 +89,13 @@ function SuccessPageContent() {
                 router.replace('/order-confirmation');
 
             } catch (e: any) {
-                console.error("eSewa success verification failed:", e);
+                console.error("Khalti success verification failed:", e);
                 setError(e.message || "An unknown error occurred during verification.");
                 setStatus('failed');
             }
         };
 
-        verifyPayment();
+        processPayment();
     }, [searchParams, router, setLastOrderItemsAndClearCart]);
 
     return (
@@ -127,7 +127,7 @@ function SuccessPageContent() {
                 <CardContent>
                     {status === 'verifying' && (
                          <p className="text-muted-foreground">
-                            Please wait while we confirm your eSewa payment. Do not close this page.
+                            Please wait while we confirm your Khalti payment. Do not close this page.
                         </p>
                     )}
                      {status === 'verified' && (
@@ -162,7 +162,7 @@ function SuccessPageContent() {
 }
 
 
-export default function EsewaSuccessPage() {
+export default function KhaltiSuccessPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <SuccessPageContent />

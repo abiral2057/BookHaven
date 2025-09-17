@@ -7,12 +7,12 @@ import { XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 
-export default function EsewaFailurePage() {
+export default function KhaltiFailurePage() {
 
     useEffect(() => {
         // Clean up local storage on failure
         localStorage.removeItem('pending_order_details');
-        localStorage.removeItem('esewa_transaction_uuid');
+        localStorage.removeItem('khalti_purchase_order_id');
     }, []);
 
     return (
@@ -23,12 +23,12 @@ export default function EsewaFailurePage() {
                         <XCircle className="h-12 w-12 text-red-600 dark:text-red-400" />
                     </div>
                     <CardTitle className="mt-6 text-3xl font-bold font-headline">
-                        Payment Failed
+                        Payment Failed or Canceled
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground">
-                        Unfortunately, your payment could not be processed. Please try again.
+                        Unfortunately, your payment could not be processed or was canceled. Please try again.
                     </p>
                     <Button asChild className="mt-8" size="lg" variant="outline">
                         <Link href="/checkout">Return to Checkout</Link>

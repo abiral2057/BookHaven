@@ -33,7 +33,7 @@ const shippingSchema = z.object({
   address: z.string().min(5, "Address is required"),
   city: z.string().min(2, "City is required"),
   postalCode: z.string().min(4, "Postal code is required"),
-  paymentMethod: z.enum(["cod", "esewa"]),
+  paymentMethod: z.enum(["cod", "esewa", "khalti"]),
 });
 
 type ShippingFormValues = z.infer<typeof shippingSchema>;
@@ -94,6 +94,67 @@ export default function CheckoutPage() {
       setValue('email', user.email || '');
     }
   }, [user, setValue]);
+
+  const storeOrderInLocalStorage = () => {
+     const orderDetails = {
+        customer: { name: watch('name'), email: watch('email') },
+        shippingAddress: { address: watch('address'), city: watch('city'), postalCode: watch('postalCode') },
+        items: cartItems,
+        total: cartTotal,
+      };
+      localStorage.setItem('pending_order_details', JSON.stringify(orderDetails));
+  }
+  
+  const handleKhaltiPayment = async () => {
+    const totalAmount = cartTotal * 100; // Khalti expects amount in paisa
+    const purchaseOrderId = `${transactionUUID}-${Date.now()}`;
+
+    storeOrderInLocalStorage();
+    localStorage.setItem('khalti_purchase_order_id', purchaseOrderId);
+    
+    const khaltiUrl = new URL("https://khalti.com/api/v2/epayment/initiate/");
+
+    const payload = {
+        return_url: `${window.location.origin}/khalti/success/`,
+        website_url: `${window.location.origin}`,
+        amount: totalAmount,
+        purchase_order_id: purchaseOrderId,
+        purchase_order_name: `BookHaven Order ${purchaseOrderId}`,
+        customer_info: {
+            name: watch('name'),
+            email: watch('email'),
+        },
+    };
+    
+    try {
+        const response = await fetch('/api/khalti/initiate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        
+        if (result.payment_url) {
+            router.push(result.payment_url);
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Khalti Payment Error",
+                description: result.error || "Could not initiate Khalti payment.",
+            });
+        }
+    } catch(error) {
+        console.error("Khalti initiation failed:", error);
+        toast({
+            variant: "destructive",
+            title: "Khalti Payment Error",
+            description: "Could not connect to the payment gateway.",
+        });
+    }
+  };
   
   const handleEsewaPayment = async () => {
     const totalAmount = cartTotal.toFixed(2);
@@ -127,16 +188,9 @@ export default function CheckoutPage() {
         'transaction_uuid': uniqueTransactionId,
       };
       
-      // Store order details in localStorage to retrieve on success/failure
+      storeOrderInLocalStorage();
       localStorage.setItem('esewa_transaction_uuid', uniqueTransactionId);
-      localStorage.setItem('esewa_order_details', JSON.stringify({
-        customer: { name: watch('name'), email: watch('email') },
-        shippingAddress: { address: watch('address'), city: watch('city'), postalCode: watch('postalCode') },
-        items: cartItems,
-        total: cartTotal,
-      }));
 
-  
       for (const key in params) {
         const input = document.createElement('input');
         input.name = key;
@@ -213,6 +267,8 @@ export default function CheckoutPage() {
 
     if (data.paymentMethod === "esewa") {
       handleEsewaPayment();
+    } else if (data.paymentMethod === "khalti") {
+      handleKhaltiPayment();
     } else {
       handleCodPayment(data);
     }
@@ -299,17 +355,23 @@ export default function CheckoutPage() {
                     <CardContent>
                         <RadioGroup
                             defaultValue="cod"
-                            onValueChange={(val) => setValue('paymentMethod', val as 'cod' | 'esewa')}
+                            onValueChange={(val) => setValue('paymentMethod', val as 'cod' | 'esewa' | 'khalti')}
+                            className="space-y-2"
                             >
-                            <div className="flex items-center space-x-2 rounded-md border p-4">
+                            <Label className="flex items-center space-x-2 rounded-md border p-4 cursor-pointer">
                                 <RadioGroupItem value="cod" id="cod" />
-                                <Label htmlFor="cod" className="flex-1 cursor-pointer">Cash on Delivery</Label>
-                            </div>
-                            <div className="flex items-center space-x-2 rounded-md border p-4">
+                                <span className="flex-1">Cash on Delivery</span>
+                            </Label>
+                            <Label className="flex items-center space-x-2 rounded-md border p-4 cursor-pointer">
                                 <RadioGroupItem value="esewa" id="esewa" />
-                                <Label htmlFor="esewa" className="flex-1 cursor-pointer">Pay with eSewa</Label>
+                                <span className="flex-1">Pay with eSewa</span>
                                  <Image src="https://blog.esewa.com.np/wp-content/uploads/2022/11/esewa-icon.png" width={40} height={40} alt="eSewa" />
-                            </div>
+                            </Label>
+                             <Label className="flex items-center space-x-2 rounded-md border p-4 cursor-pointer">
+                                <RadioGroupItem value="khalti" id="khalti" />
+                                <span className="flex-1">Pay with Khalti</span>
+                                 <Image src="https://khalti.com/static/img/logo-khalti.svg" width={60} height={40} alt="Khalti" />
+                            </Label>
                         </RadioGroup>
                          {errors.paymentMethod && <p className="text-destructive text-sm mt-2">{errors.paymentMethod.message}</p>}
                     </CardContent>
@@ -336,12 +398,13 @@ export default function CheckoutPage() {
             </div>
             </div>
             <Button type="submit" className="w-full mt-6" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? "Processing..." : (paymentMethod === 'esewa' ? 'Pay with eSewa' : 'Place Order')}
+                {isSubmitting ? "Processing..." : 
+                  (paymentMethod === 'esewa' ? 'Pay with eSewa' : 
+                  (paymentMethod === 'khalti' ? 'Pay with Khalti' : 'Place Order'))
+                }
             </Button>
         </form>
       </div>
     </>
   );
 }
-
-    
