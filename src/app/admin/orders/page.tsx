@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, CreditCard, Truck } from 'lucide-react';
 import { checkDbConnection } from '@/lib/firebase';
 
 const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
@@ -112,6 +112,7 @@ export default function OrdersPage() {
                   <TableHead>Customer</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Total</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -132,6 +133,13 @@ export default function OrdersPage() {
                     
                     <TableCell className="p-0 col-span-1 md:table-cell">
                         <p className="font-bold">रु{order.total.toFixed(2)}</p>
+                    </TableCell>
+                    
+                    <TableCell className="hidden md:table-cell">
+                        <div className="flex items-center gap-2">
+                           {order.paymentMethod === 'COD' ? <Truck className="h-4 w-4 text-muted-foreground"/> : <CreditCard className="h-4 w-4 text-muted-foreground"/>}
+                           <span>{order.paymentMethod}</span>
+                        </div>
                     </TableCell>
 
                     <TableCell className="p-0 col-span-1 md:table-cell">

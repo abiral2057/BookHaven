@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { BookOpen, Download } from 'lucide-react';
+import { BookOpen, Download, CreditCard, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { checkDbConnection } from '@/lib/firebase';
@@ -140,6 +140,7 @@ export default function CustomerDashboardPage() {
                   <TableHead className="w-[100px] sm:w-auto">Order</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Items</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Invoice</TableHead>
@@ -163,6 +164,12 @@ export default function CustomerDashboardPage() {
                     <TableCell className="p-0 col-span-2 sm:table-cell">
                         <span className="sm:hidden text-muted-foreground text-sm">Items: </span>
                         {order.items.reduce((sum, item) => sum + item.quantity, 0)}
+                    </TableCell>
+                     <TableCell className="hidden sm:table-cell">
+                        <div className="flex items-center gap-2">
+                           {order.paymentMethod === 'COD' ? <Truck className="h-4 w-4 text-muted-foreground"/> : <CreditCard className="h-4 w-4 text-muted-foreground"/>}
+                           <span>{order.paymentMethod}</span>
+                        </div>
                     </TableCell>
                     <TableCell className="p-0 col-span-1 text-right font-bold sm:table-cell sm:text-left sm:font-normal">रु{order.total.toFixed(2)}</TableCell>
                     <TableCell className="hidden sm:table-cell">
