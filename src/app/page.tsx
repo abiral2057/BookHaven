@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Search, Barcode, X } from 'lucide-react';
+import { ArrowRight, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product, getTopSellingProducts } from '@/lib/db';
@@ -14,7 +14,6 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { BarcodeScanner } from "@/components/product/barcode-scanner";
 import { Card } from "@/components/ui/card";
 
 
@@ -24,7 +23,6 @@ export default function Home() {
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const { toast } = useToast();
   const router = useRouter();
@@ -69,26 +67,13 @@ export default function Home() {
     setSearchQuery(query);
     if (query.length > 2) {
       const filteredSuggestions = allProducts.filter(product =>
-        product.name.toLowerCase().includes(query.toLowerCase()) ||
-        product.author.toLowerCase().includes(query.toLowerCase()) ||
+        (product.name && product.name.toLowerCase().includes(query.toLowerCase())) ||
+        (product.author && product.author.toLowerCase().includes(query.toLowerCase())) ||
         (product.isbn && product.isbn.includes(query))
       ).slice(0, 5);
       setSuggestions(filteredSuggestions);
     } else {
       setSuggestions([]);
-    }
-  };
-
-  const handleScanSuccess = (result: string) => {
-    setSearchQuery(result);
-    setIsScannerOpen(false);
-     if (result.length > 2) {
-      const filteredSuggestions = allProducts.filter(product =>
-        product.name.toLowerCase().includes(result.toLowerCase()) ||
-        product.author.toLowerCase().includes(result.toLowerCase()) ||
-        (product.isbn && product.isbn.includes(result))
-      ).slice(0, 5);
-      setSuggestions(filteredSuggestions);
     }
   };
 
@@ -137,15 +122,11 @@ export default function Home() {
                           <Input 
                               type="search" 
                               placeholder="Search by title, author, or ISBN..."
-                              className="flex-grow text-base h-12 pl-10 pr-10"
+                              className="flex-grow text-base h-12 pl-10"
                               value={searchQuery}
                               onChange={handleSearchChange}
                               onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                           />
-                          <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsScannerOpen(true)} type="button">
-                            <Barcode className="h-5 w-5" />
-                            <span className="sr-only">Scan Barcode</span>
-                          </Button>
                       </div>
                       <Button type="submit" size="lg" className="h-12">
                           <Search className="mr-2 h-5 w-5 md:hidden" />
@@ -242,11 +223,6 @@ export default function Home() {
       </main>
       <Footer />
     </div>
-    <BarcodeScanner 
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        onScan={handleScanSuccess}
-    />
     </>
   );
 }

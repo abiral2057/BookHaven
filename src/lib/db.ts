@@ -30,6 +30,7 @@ export interface Product {
   category: string;
   images: string[];
   isbn?: string;
+  condition: "New" | "Used";
   createdAt: Timestamp;
   updatedAt: Timestamp;
   reviewCount?: number;

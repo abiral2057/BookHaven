@@ -13,6 +13,7 @@ import { type Product } from '@/lib/db';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import { Badge } from '../ui/badge';
 
 export function ProductCard({ product }: { product: Product }) {
   const { toast } = useToast();
@@ -48,6 +49,11 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/products/${product.id}`} className="block h-full group">
       <Card className="bg-card/50 backdrop-blur-sm overflow-hidden border-border/20 shadow-sm hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 h-full flex flex-col relative">
+        {product.condition === 'Used' && (
+          <Badge variant="secondary" className="absolute top-2 left-2 z-10">
+            Used
+          </Badge>
+        )}
         <Button 
           onClick={handleWishlistToggle} 
           size="icon"

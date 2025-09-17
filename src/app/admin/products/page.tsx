@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -61,6 +62,7 @@ import {
 import Image from "next/image";
 import { checkDbConnection } from "@/lib/firebase";
 import { generateProductDescription } from "@/ai/flows/product-description-generator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const productSchema = z.object({
   name: z.string().min(1, "Book title is required"),
@@ -71,16 +73,17 @@ const productSchema = z.object({
   imageUrl: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
   category: z.string().min(1, "Please select a category"),
   isbn: z.string().optional(),
+  condition: z.enum(["New", "Used"]),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
 const defaultProducts = [
-    { name: 'To Kill a Mockingbird', author: 'Harper Lee', description: 'A novel about the serious issues of rape and racial inequality.', price: 12.99, stock: 50, category: 'Fiction', isbn: '978-0-06-112008-4' },
-    { name: '1984', author: 'George Orwell', description: 'A dystopian social science fiction novel and cautionary tale.', price: 10.99, stock: 30, category: 'Science Fiction', isbn: '978-0-452-28423-4' },
-    { name: 'The Great Gatsby', author: 'F. Scott Fitzgerald', description: 'A novel about the American dream and its corruption.', price: 14.00, stock: 45, category: 'Fiction', isbn: '978-0-7432-7356-5' },
-    { name: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', description: 'A book that surveys the history of humankind.', price: 22.50, stock: 25, category: 'History', isbn: '978-0-06-231609-7' },
-    { name: 'The Hobbit', author: 'J.R.R. Tolkien', description: 'A fantasy novel and children\'s book about the quest of hobbit Bilbo Baggins.', price: 18.00, stock: 60, category: 'Science Fiction', isbn: '978-0-345-33968-3' },
+    { name: 'To Kill a Mockingbird', author: 'Harper Lee', description: 'A novel about the serious issues of rape and racial inequality.', price: 12.99, stock: 50, category: 'Fiction', isbn: '978-0-06-112008-4', condition: 'New' as const },
+    { name: '1984', author: 'George Orwell', description: 'A dystopian social science fiction novel and cautionary tale.', price: 10.99, stock: 30, category: 'Science Fiction', isbn: '978-0-452-28423-4', condition: 'New' as const },
+    { name: 'The Great Gatsby', author: 'F. Scott Fitzgerald', description: 'A novel about the American dream and its corruption.', price: 14.00, stock: 45, category: 'Fiction', isbn: '978-0-7432-7356-5', condition: 'New' as const },
+    { name: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', description: 'A book that surveys the history of humankind.', price: 22.50, stock: 25, category: 'History', isbn: '978-0-06-231609-7', condition: 'New' as const },
+    { name: 'The Hobbit', author: 'J.R.R. Tolkien', description: 'A fantasy novel and children\'s book about the quest of hobbit Bilbo Baggins.', price: 18.00, stock: 60, category: 'Science Fiction', isbn: '978-0-345-33968-3', condition: 'Used' as const },
 ];
 
 
@@ -107,6 +110,7 @@ export default function ProductsPage() {
       imageUrl: "",
       category: "",
       isbn: "",
+      condition: "New",
     },
   });
 
@@ -260,6 +264,7 @@ export default function ProductsPage() {
       imageUrl: product.images?.[0] || '',
       category: product.category,
       isbn: product.isbn || '',
+      condition: product.condition || 'New',
     });
   };
 
@@ -465,6 +470,40 @@ export default function ProductsPage() {
                     )}
                   />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="condition"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Condition</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex items-center space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="New" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              New
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="Used" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Used
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
