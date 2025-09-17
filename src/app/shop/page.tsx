@@ -87,8 +87,8 @@ function ShopPageComponent() {
 
     if (searchTerm.length > 2) {
       const filteredSuggestions = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.name && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (product.author && product.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (product.isbn && product.isbn.includes(searchTerm))
       ).slice(0, 5);
       setSuggestions(filteredSuggestions);
@@ -115,8 +115,8 @@ function ShopPageComponent() {
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch =
         searchTerm.length === 0 ||
-        product.name.toLowerCase().includes(searchTermLower) ||
-        product.author.toLowerCase().includes(searchTermLower) ||
+        (product.name && product.name.toLowerCase().includes(searchTermLower)) ||
+        (product.author && product.author.toLowerCase().includes(searchTermLower)) ||
         (product.isbn && product.isbn.replace(/-/g, '').includes(searchTermLower.replace(/-/g, '')));
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
