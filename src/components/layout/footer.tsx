@@ -1,10 +1,15 @@
 
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Book, Twitter, Facebook, Instagram } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 export function Footer() {
+    const { isAdmin } = useAuth();
+
     return (
         <footer className="bg-card border-t border-border/60 text-card-foreground">
             <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -27,7 +32,9 @@ export function Footer() {
                             <li><Link href="/" className="text-sm text-muted-foreground hover:text-foreground">Home</Link></li>
                             <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-foreground">Shop</Link></li>
                             <li><Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">About</Link></li>
-                            <li><Link href="/admin/dashboard" className="text-sm text-muted-foreground hover:text-foreground">Admin</Link></li>
+                            {isAdmin && (
+                                <li><Link href="/admin/dashboard" className="text-sm text-muted-foreground hover:text-foreground">Admin</Link></li>
+                            )}
                         </ul>
                     </div>
 
