@@ -78,24 +78,36 @@ function ShopPageComponent() {
     fetchData();
   }, [toast]);
   
-  useEffect(() => {
-    // Update URL when filters change
-    const params = new URLSearchParams();
-    if (searchTerm) params.set('search', searchTerm);
-    if (selectedCategory) params.set('category', selectedCategory);
-    router.replace(`/shop?${params.toString()}`, { scroll: false });
-
-    if (searchTerm.length > 2) {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchTerm(query);
+    if (query.length > 2) {
       const filteredSuggestions = products.filter(product =>
-        (product.name && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (product.author && product.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (product.isbn && product.isbn.includes(searchTerm))
+        (product.name && product.name.toLowerCase().includes(query.toLowerCase())) ||
+        (product.author && product.author.toLowerCase().includes(query.toLowerCase())) ||
+        (product.isbn && product.isbn.includes(query))
       ).slice(0, 5);
       setSuggestions(filteredSuggestions);
     } else {
       setSuggestions([]);
     }
-  }, [searchTerm, selectedCategory, router, products]);
+  };
+  
+  useEffect(() => {
+    // Update URL when filters change
+    const params = new URLSearchParams(searchParams);
+    if (searchTerm) {
+      params.set('search', searchTerm);
+    } else {
+      params.delete('search');
+    }
+    if (selectedCategory) {
+      params.set('category', selectedCategory);
+    } else {
+      params.delete('category');
+    }
+    router.replace(`/shop?${params.toString()}`, { scroll: false });
+  }, [searchTerm, selectedCategory, router]);
 
 
   const handleScanSuccess = (result: string) => {
@@ -142,7 +154,7 @@ function ShopPageComponent() {
               id="search"
               placeholder="Title, author, or ISBN..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               onBlur={() => setTimeout(() => setSuggestions([]), 200)}
               className="pl-10 pr-10"
             />
@@ -151,7 +163,7 @@ function ShopPageComponent() {
              </Button>
           </div>
           {suggestions.length > 0 && (
-            <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
+            <Card className="absolute z-20 w-full mt-1 max-h-60 overflow-y-auto">
               <ul>
                 {suggestions.map(product => (
                   <li key={product.id}>
@@ -331,3 +343,5 @@ export default function ShopPage() {
     </Suspense>
   )
 }
+
+    
