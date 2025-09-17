@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
+  CardDescription,
 } from "@/components/ui/card";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +23,9 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { Book, ArrowLeft, Trash2 } from 'lucide-react';
 import { addOrder } from "@/lib/db";
-import { useEffect } from "react";
+import { useEffect, useState, useId } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { generateEsewaSignature } from "@/ai/flows/esewa";
 
 const shippingSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -30,6 +33,7 @@ const shippingSchema = z.object({
   address: z.string().min(5, "Address is required"),
   city: z.string().min(2, "City is required"),
   postalCode: z.string().min(4, "Postal code is required"),
+  paymentMethod: z.enum(["cod", "esewa"]),
 });
 
 type ShippingFormValues = z.infer<typeof shippingSchema>;
@@ -63,18 +67,26 @@ function OrderSummaryItem({ item, onRemove }: { item: CartItem, onRemove: (id: s
 }
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, setLastOrderItemsAndClearCart, removeFromCart } = useCart();
+  const { cartItems, cartTotal, setLastOrderItemsAndClearCart, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const transactionUUID = useId();
+
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<ShippingFormValues>({
     resolver: zodResolver(shippingSchema),
+    defaultValues: {
+      paymentMethod: "cod",
+    }
   });
+
+  const paymentMethod = watch("paymentMethod");
   
   useEffect(() => {
     if (user) {
@@ -82,16 +94,70 @@ export default function CheckoutPage() {
       setValue('email', user.email || '');
     }
   }, [user, setValue]);
+  
+  const handleEsewaPayment = async () => {
+    const totalAmount = cartTotal.toFixed(2);
+    const uniqueTransactionId = `${transactionUUID}-${Date.now()}`;
+  
+    try {
+      // 1. Get signature from server
+      const signatureResponse = await generateEsewaSignature({
+        amount: totalAmount,
+        transaction_uuid: uniqueTransactionId
+      });
+      const { signature } = signatureResponse;
+  
+      // 2. Create a hidden form and submit it
+      const esewaForm = document.createElement('form');
+      esewaForm.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+      esewaForm.method = "POST";
+      esewaForm.style.display = "none";
+  
+      const params: Record<string, string> = {
+        'amount': totalAmount,
+        'failure_url': `${window.location.origin}/esewa/failure`,
+        'product_delivery_charge': '0',
+        'product_service_charge': '0',
+        'product_code': 'EPAYTEST',
+        'signature': signature,
+        'signed_field_names': 'total_amount,transaction_uuid,product_code',
+        'success_url': `${window.location.origin}/esewa/success`,
+        'tax_amount': '0',
+        'total_amount': totalAmount,
+        'transaction_uuid': uniqueTransactionId,
+      };
+      
+      // Store order details in localStorage to retrieve on success/failure
+      localStorage.setItem('esewa_transaction_uuid', uniqueTransactionId);
+      localStorage.setItem('esewa_order_details', JSON.stringify({
+        customer: { name: watch('name'), email: watch('email') },
+        shippingAddress: { address: watch('address'), city: watch('city'), postalCode: watch('postalCode') },
+        items: cartItems,
+        total: cartTotal,
+      }));
 
-  const onSubmit: SubmitHandler<ShippingFormValues> = async (data) => {
-    if (cartItems.length === 0) {
+  
+      for (const key in params) {
+        const input = document.createElement('input');
+        input.name = key;
+        input.value = params[key];
+        esewaForm.appendChild(input);
+      }
+  
+      document.body.appendChild(esewaForm);
+      esewaForm.submit();
+  
+    } catch (error) {
+      console.error("eSewa payment initiation failed:", error);
       toast({
         variant: "destructive",
-        title: "Your cart is empty",
-        description: "You cannot place an order with an empty cart.",
+        title: "eSewa Payment Error",
+        description: "Could not initiate the payment. Please try again.",
       });
-      return;
     }
+  };
+
+  const handleCodPayment = async (data: ShippingFormValues) => {
      if (!user) {
       toast({
         variant: "destructive",
@@ -114,11 +180,12 @@ export default function CheckoutPage() {
         },
         items: cartItems,
         total: cartTotal,
+        paymentMethod: 'COD',
       });
 
       toast({
         title: "Order Placed!",
-        description: "Thank you for your purchase.",
+        description: "Thank you for your purchase. You will pay on delivery.",
       });
 
       setLastOrderItemsAndClearCart(cartItems);
@@ -131,6 +198,23 @@ export default function CheckoutPage() {
         title: "Order Failed",
         description: "There was a problem placing your order. Please try again.",
       });
+    }
+  };
+
+  const onSubmit: SubmitHandler<ShippingFormValues> = async (data) => {
+    if (cartItems.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Your cart is empty",
+        description: "You cannot place an order with an empty cart.",
+      });
+      return;
+    }
+
+    if (data.paymentMethod === "esewa") {
+      handleEsewaPayment();
+    } else {
+      handleCodPayment(data);
     }
   };
 
@@ -168,8 +252,9 @@ export default function CheckoutPage() {
         </h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Shipping Form */}
-            <div>
+            
+            <div className="flex flex-col gap-8">
+               {/* Shipping Form */}
                 <Card>
                 <CardHeader>
                     <CardTitle>Shipping Information</CardTitle>
@@ -204,7 +289,33 @@ export default function CheckoutPage() {
                     </div>
                 </CardContent>
                 </Card>
+
+                 {/* Payment Method */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Payment Method</CardTitle>
+                        <CardDescription>Choose how you'd like to pay.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <RadioGroup
+                            defaultValue="cod"
+                            onValueChange={(val) => setValue('paymentMethod', val as 'cod' | 'esewa')}
+                            >
+                            <div className="flex items-center space-x-2 rounded-md border p-4">
+                                <RadioGroupItem value="cod" id="cod" />
+                                <Label htmlFor="cod" className="flex-1 cursor-pointer">Cash on Delivery</Label>
+                            </div>
+                            <div className="flex items-center space-x-2 rounded-md border p-4">
+                                <RadioGroupItem value="esewa" id="esewa" />
+                                <Label htmlFor="esewa" className="flex-1 cursor-pointer">Pay with eSewa</Label>
+                                 <Image src="https://blog.esewa.com.np/wp-content/uploads/2022/11/esewa-icon.png" width={40} height={40} alt="eSewa" />
+                            </div>
+                        </RadioGroup>
+                         {errors.paymentMethod && <p className="text-destructive text-sm mt-2">{errors.paymentMethod.message}</p>}
+                    </CardContent>
+                </Card>
             </div>
+
 
             {/* Order Summary */}
             <div>
@@ -225,10 +336,12 @@ export default function CheckoutPage() {
             </div>
             </div>
             <Button type="submit" className="w-full mt-6" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? "Placing Order..." : "Place Order"}
+                {isSubmitting ? "Processing..." : (paymentMethod === 'esewa' ? 'Pay with eSewa' : 'Place Order')}
             </Button>
         </form>
       </div>
     </>
   );
 }
+
+    

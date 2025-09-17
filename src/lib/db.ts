@@ -76,6 +76,8 @@ export interface Order {
   status: "Pending" | "Confirmed" | "Shipping" | "Delivered" | "Refunded";
   createdAt: Date;
   userId?: string; // To associate order with a user
+  paymentMethod: "COD" | "eSewa";
+  transactionId?: string;
 }
 
 export interface Review {
@@ -489,3 +491,22 @@ export const getReviewsByProductId = async (productId: string): Promise<Review[]
     throw new Error("Could not get reviews for product");
   }
 };
+
+// Function to check if an order with a given transaction_uuid already exists
+export const getOrderByTransactionId = async (transactionId: string): Promise<Order | null> => {
+  try {
+    const ordersRef = collection(db, 'orders');
+    const q = query(ordersRef, where('transactionId', '==', transactionId), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return { id: doc.id, ...doc.data() } as Order;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching order by transaction ID:', error);
+    throw new Error('Could not verify order transaction.');
+  }
+};
+
+    
