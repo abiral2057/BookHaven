@@ -1,3 +1,4 @@
+
 import {
   collection,
   addDoc,
@@ -17,6 +18,8 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 import type { CartItem } from "@/hooks/use-cart";
+import { sendOrderConfirmationToCustomer, sendNewOrderNotificationToAdmin } from "./email";
+
 
 export interface Product {
   id: string;
@@ -275,6 +278,12 @@ export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status" 
             status: "Pending",
             createdAt: serverTimestamp(),
         });
+        
+        // After order is created, send emails
+        const newOrder = { ...order, id: docRef.id };
+        await sendOrderConfirmationToCustomer(newOrder);
+        await sendNewOrderNotificationToAdmin(newOrder);
+
         return docRef.id;
     } catch (e) {
         console.error("Error adding order: ", e);
