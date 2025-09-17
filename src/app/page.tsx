@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Search, X, ScanBarcode } from 'lucide-react';
+import { ArrowRight, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product, getTopSellingProducts } from '@/lib/db';
@@ -15,7 +15,6 @@ import { Footer } from "@/components/layout/footer";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
-import { BarcodeScanner } from "@/components/product/barcode-scanner";
 
 
 export default function Home() {
@@ -25,7 +24,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Product[]>([]);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   
@@ -78,16 +76,6 @@ export default function Home() {
       setSuggestions([]);
     }
   };
-  
-  const handleBarcodeScan = (barcode: string) => {
-    setSearchQuery(barcode);
-    setIsScannerOpen(false);
-    toast({
-      title: "Barcode Scanned",
-      description: `Searching for: ${barcode}`,
-    });
-    router.push(`/shop?search=${encodeURIComponent(barcode)}`);
-  };
 
 
   return (
@@ -135,21 +123,11 @@ export default function Home() {
                           <Input 
                               type="search" 
                               placeholder="Search by title, author, or ISBN..."
-                              className="flex-grow text-base h-12 pl-10 pr-12"
+                              className="flex-grow text-base h-12 pl-10"
                               value={searchQuery}
                               onChange={handleSearchChange}
                               onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                           />
-                           <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => setIsScannerOpen(true)}
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                           >
-                              <ScanBarcode className="h-5 w-5" />
-                              <span className="sr-only">Scan Barcode</span>
-                           </Button>
                       </div>
                       <Button type="submit" size="lg" className="h-12">
                           <Search className="mr-2 h-5 w-5 md:hidden" />
@@ -173,12 +151,6 @@ export default function Home() {
                 </div>
             </div>
         </section>
-        
-        <BarcodeScanner
-            isOpen={isScannerOpen}
-            onClose={() => setIsScannerOpen(false)}
-            onScan={handleBarcodeScan}
-        />
 
         {/* Featured Books Section */}
         <section id="books" className="py-16 sm:py-24">

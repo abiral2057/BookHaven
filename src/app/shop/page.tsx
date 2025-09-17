@@ -11,7 +11,7 @@ import { Footer } from "@/components/layout/footer";
 import { ProductCard } from "@/components/product/product-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Search, X, Filter, ScanBarcode } from "lucide-react";
+import { BookOpen, Search, X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -25,7 +25,6 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { BarcodeScanner } from "@/components/product/barcode-scanner";
 
 function ShopPageComponent() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -42,7 +41,6 @@ function ShopPageComponent() {
   const [maxPrice, setMaxPrice] = useState(100);
   const [priceRange, setPriceRange] = useState([100]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
 
   useEffect(() => {
@@ -107,15 +105,6 @@ function ShopPageComponent() {
     }
     router.replace(`/shop?${params.toString()}`, { scroll: false });
   }, [searchTerm, selectedCategory, router, searchParams]);
-  
-  const handleBarcodeScan = (barcode: string) => {
-    setSearchTerm(barcode);
-    setIsScannerOpen(false);
-    toast({
-      title: "Barcode Scanned",
-      description: `Searching for: ${barcode}`,
-    });
-  };
 
 
   const clearFilters = () => {
@@ -199,21 +188,11 @@ function ShopPageComponent() {
                               id="search"
                               type="search" 
                               placeholder="Search by title, author, or ISBN..."
-                              className="flex-grow text-base h-12 pl-10 pr-12"
+                              className="flex-grow text-base h-12 pl-10"
                               value={searchTerm}
                               onChange={handleSearchChange}
                               onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                           />
-                          <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => setIsScannerOpen(true)}
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                           >
-                              <ScanBarcode className="h-5 w-5" />
-                              <span className="sr-only">Scan Barcode</span>
-                           </Button>
                       </div>
                   </form>
                   {suggestions.length > 0 && (
@@ -338,11 +317,6 @@ function ShopPageComponent() {
         </div>
       </main>
       <Footer />
-       <BarcodeScanner
-            isOpen={isScannerOpen}
-            onClose={() => setIsScannerOpen(false)}
-            onScan={handleBarcodeScan}
-        />
     </div>
     </>
   );
