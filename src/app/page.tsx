@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, Barcode, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProducts, Product, getTopSellingProducts } from '@/lib/db';
@@ -14,26 +14,33 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { BarcodeScanner } from "@/components/product/barcode-scanner";
+import { Card } from "@/components/ui/card";
 
 
 export default function Home() {
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const { toast } = useToast();
   const router = useRouter();
   
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const [fetchedProducts, fetchedTopProducts] = await Promise.all([
+        const [fetchedProducts, fetchedTopProducts, allFetchedProducts] = await Promise.all([
           getProducts(10), // Get 10 most recent products
-          getTopSellingProducts(10) // Get 10 top selling products
+          getTopSellingProducts(10), // Get 10 top selling products
+          getProducts(), // Get all products for search
         ]);
         
         setFeaturedProducts(fetchedProducts);
         setTopProducts(fetchedTopProducts);
+        setAllProducts(allFetchedProducts);
 
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -57,8 +64,36 @@ export default function Home() {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.length > 2) {
+      const filteredSuggestions = allProducts.filter(product =>
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.author.toLowerCase().includes(query.toLowerCase()) ||
+        (product.isbn && product.isbn.includes(query))
+      ).slice(0, 5);
+      setSuggestions(filteredSuggestions);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleScanSuccess = (result: string) => {
+    setSearchQuery(result);
+    setIsScannerOpen(false);
+     if (result.length > 2) {
+      const filteredSuggestions = allProducts.filter(product =>
+        product.name.toLowerCase().includes(result.toLowerCase()) ||
+        product.author.toLowerCase().includes(result.toLowerCase()) ||
+        (product.isbn && product.isbn.includes(result))
+      ).slice(0, 5);
+      setSuggestions(filteredSuggestions);
+    }
+  };
 
   return (
+    <>
     <div className="bg-background min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
@@ -95,19 +130,43 @@ export default function Home() {
             <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-3xl font-bold text-center text-foreground">Search Our Shelves</h2>
                 <p className="mt-2 text-center text-muted-foreground">Looking for something specific? Start your search here.</p>
-                 <form onSubmit={handleSearchSubmit} className="mt-8 flex gap-2">
-                    <Input 
-                        type="search" 
-                        placeholder="Search by title, author, or ISBN..."
-                        className="flex-grow text-base h-12"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <Button type="submit" size="lg" className="h-12">
-                        <Search className="mr-2 h-5 w-5" />
-                        Search
-                    </Button>
-                </form>
+                <div className="relative">
+                  <form onSubmit={handleSearchSubmit} className="mt-8 flex gap-2">
+                      <div className="relative flex-grow">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <Input 
+                              type="search" 
+                              placeholder="Search by title, author, or ISBN..."
+                              className="flex-grow text-base h-12 pl-10 pr-10"
+                              value={searchQuery}
+                              onChange={handleSearchChange}
+                              onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+                          />
+                          <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsScannerOpen(true)} type="button">
+                            <Barcode className="h-5 w-5" />
+                            <span className="sr-only">Scan Barcode</span>
+                          </Button>
+                      </div>
+                      <Button type="submit" size="lg" className="h-12">
+                          <Search className="mr-2 h-5 w-5 md:hidden" />
+                          <span className="hidden md:inline">Search</span>
+                      </Button>
+                  </form>
+                  {suggestions.length > 0 && (
+                      <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
+                        <ul>
+                          {suggestions.map(product => (
+                            <li key={product.id}>
+                              <Link href={`/products/${product.id}`} className="block p-3 hover:bg-accent">
+                                <p className="font-semibold">{product.name}</p>
+                                <p className="text-sm text-muted-foreground">{product.author}</p>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </Card>
+                    )}
+                </div>
             </div>
         </section>
 
@@ -183,5 +242,11 @@ export default function Home() {
       </main>
       <Footer />
     </div>
+    <BarcodeScanner 
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleScanSuccess}
+    />
+    </>
   );
 }

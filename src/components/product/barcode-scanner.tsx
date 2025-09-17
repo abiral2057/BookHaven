@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Camera } from "lucide-react";
 
 interface BarcodeScannerProps {
   isOpen: boolean;
@@ -21,15 +22,21 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps) {
   const { toast } = useToast();
-  const [hasCameraPermission, setHasCameraPermission] = useState(true);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    let stream: MediaStream | null = null;
 
     const getCameraPermission = async () => {
+      // Only run if the dialog is open
+      if (!isOpen) {
+        setHasCameraPermission(null);
+        return;
+      };
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -49,8 +56,7 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
     
     // Cleanup function to stop the video stream when the component unmounts or dialog closes
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
+      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
@@ -63,12 +69,9 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
   };
 
   const handleError = (err: any) => {
-     console.error(err);
-     toast({
-        variant: "destructive",
-        title: "Scan Error",
-        description: "Could not read the barcode. Please try again."
-     })
+     // This can fire for non-critical reasons, e.g. no barcode found in frame.
+     // We can choose to log it silently or ignore it.
+     console.log("Barcode reader error:", err);
   };
 
   return (
@@ -81,16 +84,26 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4">
-          {hasCameraPermission ? (
+          {hasCameraPermission === null && (
+             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                <Camera className="h-12 w-12 mb-2" />
+                <p>Requesting camera permission...</p>
+            </div>
+          )}
+          {hasCameraPermission === true && (
             <div className="relative">
+               {/* BarcodeReader is not visible, but provides the scanning logic */}
                <BarcodeReader
                   onError={handleError}
                   onScan={handleScan}
+                  onFind={() => {}}
                />
-               <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted />
+               <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />
                <div className="absolute inset-0 border-4 border-primary/50 rounded-md pointer-events-none" />
+               <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-500/70 animate-pulse" />
             </div>
-          ) : (
+          )}
+           {hasCameraPermission === false && (
             <Alert variant="destructive">
               <AlertTitle>Camera Access Required</AlertTitle>
               <AlertDescription>

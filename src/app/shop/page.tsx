@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getProducts, Product, getCategories, Category } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
@@ -24,6 +24,8 @@ import {
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { BarcodeScanner } from "@/components/product/barcode-scanner";
+import { Card } from "@/components/ui/card";
+import Link from "next/link";
 
 function ShopPageComponent() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -31,11 +33,14 @@ function ShopPageComponent() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
+  const initialCategory = searchParams.get('category') || null;
 
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
   const [maxPrice, setMaxPrice] = useState(100);
   const [priceRange, setPriceRange] = useState([100]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -72,6 +77,26 @@ function ShopPageComponent() {
     };
     fetchData();
   }, [toast]);
+  
+  useEffect(() => {
+    // Update URL when filters change
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (selectedCategory) params.set('category', selectedCategory);
+    router.replace(`/shop?${params.toString()}`, { scroll: false });
+
+    if (searchTerm.length > 2) {
+      const filteredSuggestions = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.isbn && product.isbn.includes(searchTerm))
+      ).slice(0, 5);
+      setSuggestions(filteredSuggestions);
+    } else {
+      setSuggestions([]);
+    }
+  }, [searchTerm, selectedCategory, router, products]);
+
 
   const handleScanSuccess = (result: string) => {
     setSearchTerm(result);
@@ -88,9 +113,10 @@ function ShopPageComponent() {
     return products.filter((product) => {
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch =
+        searchTerm.length === 0 ||
         product.name.toLowerCase().includes(searchTermLower) ||
         product.author.toLowerCase().includes(searchTermLower) ||
-        (product.isbn && product.isbn.replace(/-/g, '').includes(searchTermLower));
+        (product.isbn && product.isbn.replace(/-/g, '').includes(searchTermLower.replace(/-/g, '')));
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
       const matchesPrice = product.price <= priceRange[0];
@@ -110,18 +136,33 @@ function ShopPageComponent() {
             Search
           </Label>
           <div className="relative mt-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               id="search"
               placeholder="Title, author, or ISBN..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onBlur={() => setTimeout(() => setSuggestions([]), 200)}
               className="pl-10 pr-10"
             />
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
              <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsScannerOpen(true)}>
                 <Barcode className="h-5 w-5" />
              </Button>
           </div>
+          {suggestions.length > 0 && (
+            <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
+              <ul>
+                {suggestions.map(product => (
+                  <li key={product.id}>
+                    <Link href={`/products/${product.id}`} className="block p-3 hover:bg-accent">
+                      <p className="font-semibold">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">{product.author}</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
         </div>
 
         {/* Price Filter */}
@@ -174,7 +215,9 @@ function ShopPageComponent() {
             {/* Filters Sidebar for Desktop */}
             <aside className="hidden lg:block lg:col-span-1 bg-card/50 p-6 rounded-lg self-start sticky top-24">
               <h2 className="text-2xl font-bold mb-6">Filters</h2>
-              <FilterSidebarContent />
+              <div className="relative">
+                <FilterSidebarContent />
+              </div>
             </aside>
 
             {/* Products Grid */}
@@ -193,7 +236,7 @@ function ShopPageComponent() {
                         <SheetHeader>
                             <SheetTitle className="text-2xl">Filters</SheetTitle>
                         </SheetHeader>
-                        <div className="p-4">
+                        <div className="p-4 relative">
                             <FilterSidebarContent />
                         </div>
                       </SheetContent>
