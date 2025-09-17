@@ -371,7 +371,7 @@ export default function CheckoutPage() {
                             </Label>
                              <Label htmlFor="khalti" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer md:col-span-2">
                                 <RadioGroupItem value="khalti" id="khalti" className="sr-only" />
-                                 <Image src="https://khalti.com/static/img/logo-khalti.svg" width={80} height={40} alt="Khalti" className="mb-3"/>
+                                 <Image src="https://khalti.com/static/img/logo1.png" width={80} height={40} alt="Khalti by IME" className="mb-3 object-contain"/>
                                 Pay with Khalti
                             </Label>
                         </RadioGroup>

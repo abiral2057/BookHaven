@@ -98,7 +98,7 @@ export default function OrdersPage() {
       case 'eSewa':
         return <Image src="https://img.drz.lazcdn.com/g/tps/tfs/TB1L2Vzduj1gK0jSZFOXXc7GpXa-300-100.png" width={40} height={20} alt="eSewa" title="eSewa" className="object-contain" />;
       case 'Khalti':
-        return <Image src="https://khalti.com/static/img/logo-khalti.svg" width={40} height={20} alt="Khalti" title="Khalti" className="object-contain" />;
+        return <Image src="https://khalti.com/static/img/logo1.png" width={50} height={20} alt="Khalti by IME" title="Khalti" className="object-contain"/>;
       default:
         return <CreditCard className="h-5 w-5 text-muted-foreground" title="Card" />;
     }
