@@ -68,20 +68,14 @@ export function ProductCard({ product }: { product: Product }) {
         <CardContent className="p-3 flex flex-col flex-grow">
           <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
           <p className="text-xs text-muted-foreground mt-1 truncate">{product.author}</p>
-          {reviewCount > 0 ? (
-            <div className="flex items-center gap-1 mt-2">
-              <div className="flex items-center gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={cn("h-4 w-4", i < Math.floor(rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
-                  ))}
-              </div>
-              <span className="text-xs text-muted-foreground">({reviewCount})</span>
+          <div className="flex items-center gap-1 mt-2">
+            <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={cn("h-4 w-4", i < Math.floor(rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
+                ))}
             </div>
-          ) : (
-             <div className="flex items-center gap-1 mt-2 h-[1rem]">
-                <span className="text-xs text-muted-foreground italic">No reviews yet</span>
-            </div>
-          )}
+            <span className="text-xs text-muted-foreground">({reviewCount})</span>
+          </div>
           <div className="flex items-center justify-between mt-auto pt-2">
             <p className="text-base font-semibold text-primary">रु{product.price.toFixed(2)}</p>
             <Button 
