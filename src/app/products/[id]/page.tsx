@@ -1,19 +1,16 @@
 
 
-import { getProduct, getProducts, Product, getReviewsByProductId, Review } from "@/lib/db";
-import { getCategories, Category } from "@/lib/db";
+import { getProduct, getProducts, getReviewsByProductId } from "@/lib/db";
+import { getCategories } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Book, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Breadcrumb } from "@/components/layout/breadcrumb";
-import { ProductReviews } from "@/components/product/product-reviews";
 import { ProductDetailsClient } from "./product-details-client";
+import { Header } from "@/components/layout/header";
 
-function RelatedProductCard({ product }: { product: Product }) {
+function RelatedProductCard({ product }: { product: Awaited<ReturnType<typeof getProduct>> }) {
+  if (!product) return null;
   return (
     <Link href={`/products/${product.id}`} className="block h-full">
       <Card className="bg-card/50 overflow-hidden border-border/20 shadow-sm hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 group h-full flex flex-col">
@@ -68,23 +65,14 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
   return (
     <>
-     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-2">
-            <Book className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold font-headline text-foreground">BookHaven</span>
-          </Link>
-           <Button variant="outline" asChild className="border-primary/20 hover:bg-primary/5">
-                <Link href="/shop">
-                    <ArrowLeft className="mr-2 h-4 w-4"/>
-                    Back to Store
-                </Link>
-            </Button>
-        </div>
-      </header>
+      <Header />
       <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <Breadcrumb items={breadcrumbItems} />
-        <ProductDetailsClient product={product} category={category} initialReviews={reviews} />
+        <ProductDetailsClient 
+            product={product} 
+            category={category} 
+            initialReviews={reviews} 
+            breadcrumbItems={breadcrumbItems}
+        />
 
         {/* Related Products */}
         {recommendations.length > 0 && (

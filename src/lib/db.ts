@@ -32,8 +32,8 @@ export interface Product {
   images: string[];
   isbn?: string;
   condition: "New" | "Used";
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: string;
+  updatedAt: string;
   reviewCount?: number;
   averageRating?: number;
 }
@@ -44,7 +44,7 @@ export interface Category {
     id: string;
     name: string;
     description: string;
-    createdAt: Timestamp;
+    createdAt: string;
 }
 
 export type CategoryInput = Omit<Category, "id" | "createdAt">;
@@ -56,7 +56,7 @@ export interface Customer {
   address?: string;
   city?: string;
   postalCode?: string;
-  firstOrderAt: Date;
+  firstOrderAt: string;
 }
 
 export type CustomerInput = Omit<Customer, "id" | "firstOrderAt">;
@@ -75,7 +75,7 @@ export interface Order {
   items: CartItem[];
   total: number;
   status: "Pending" | "Confirmed" | "Shipping" | "Delivered" | "Refunded";
-  createdAt: Date;
+  createdAt: string;
   userId?: string; // To associate order with a user
   paymentMethod: "COD" | "eSewa" | "Khalti";
   transactionId?: string;
@@ -89,7 +89,7 @@ export interface Review {
   userAvatar?: string;
   rating: number;
   comment: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export type ReviewInput = Omit<Review, "id" | "createdAt">;
@@ -111,7 +111,7 @@ export const addProduct = async (product: ProductInput): Promise<string> => {
   }
 };
 
-export const updateProduct = async (id: string, product: ProductInput): Promise<void> => {
+export const updateProduct = async (id: string, product: Partial<ProductInput>): Promise<void> => {
     try {
         const productRef = doc(db, "products", id);
         await updateDoc(productRef, {
@@ -134,6 +134,16 @@ export const deleteProduct = async (id: string): Promise<void> => {
     }
 };
 
+const docToProduct = (doc: any): Product => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+        updatedAt: (data.updatedAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+    } as Product;
+};
+
 
 export const getProducts = async (count?: number): Promise<Product[]> => {
   try {
@@ -143,11 +153,7 @@ export const getProducts = async (count?: number): Promise<Product[]> => {
       : query(productsRef, orderBy("createdAt", "desc"));
       
     const querySnapshot = await getDocs(q);
-    const products: Product[] = [];
-    querySnapshot.forEach((doc) => {
-      products.push({ id: doc.id, ...doc.data() } as Product);
-    });
-    return products;
+    return querySnapshot.docs.map(docToProduct);
   } catch (e) {
     console.error("Error getting documents: ", e);
     throw new Error("Could not get products");
@@ -160,7 +166,7 @@ export const getProduct = async (id: string): Promise<Product | null> => {
     const docSnap = await getDoc(productRef);
 
     if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as Product;
+      return docToProduct(docSnap);
     } else {
       return null;
     }
@@ -183,15 +189,20 @@ export const addCategory = async (category: CategoryInput): Promise<string> => {
     }
 };
 
+const docToCategory = (doc: any): Category => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+    } as Category;
+}
+
 export const getCategories = async (): Promise<Category[]> => {
     try {
         const q = query(collection(db, "categories"), orderBy("name"));
         const querySnapshot = await getDocs(q);
-        const categories: Category[] = [];
-        querySnapshot.forEach((doc) => {
-            categories.push({ id: doc.id, ...doc.data() } as Category);
-        });
-        return categories;
+        return querySnapshot.docs.map(docToCategory);
     } catch (e) {
         console.error("Error getting documents: ", e);
         throw new Error("Could not get categories");
@@ -234,26 +245,34 @@ export const addCustomer = async (customer: Omit<CustomerInput, 'name' | 'email'
     }
 };
 
+const docToCustomer = (doc: any): Customer => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        firstOrderAt: (data.firstOrderAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+    } as Customer;
+}
+
 export const getCustomers = async (): Promise<Customer[]> => {
   try {
     const q = query(collection(db, "customers"), orderBy("firstOrderAt", "desc"));
     const querySnapshot = await getDocs(q);
-    const customers: Customer[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const firstOrderAtRaw = data.firstOrderAt as Timestamp | null;
-      customers.push({ 
-          id: doc.id, 
-          ...data,
-          firstOrderAt: firstOrderAtRaw?.toDate() ?? new Date(),
-      } as Customer);
-    });
-    return customers;
+    return querySnapshot.docs.map(docToCustomer);
   } catch (e) {
     console.error("Error getting customers: ", e);
     throw new Error("Could not get customers");
   }
 };
+
+const docToOrder = (doc: any): Order => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+    } as Order;
+}
 
 
 export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status" >): Promise<string> => {
@@ -280,7 +299,13 @@ export const addOrder = async (order: Omit<Order, "id" | "createdAt" | "status" 
         });
         
         // After order is created, send emails
-        const newOrder = { ...order, id: docRef.id };
+        const newOrderData = (await getDoc(docRef)).data();
+        const newOrder = { 
+            id: docRef.id,
+            ...newOrderData,
+            createdAt: (newOrderData?.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+        } as Order;
+
         await sendOrderConfirmationToCustomer(newOrder);
         await sendNewOrderNotificationToAdmin(newOrder);
 
@@ -299,17 +324,7 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
           : query(ordersRef, orderBy("createdAt", "desc"));
 
         const querySnapshot = await getDocs(q);
-        const orders: Order[] = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const createdAtRaw = data.createdAt as Timestamp | null;
-            orders.push({ 
-                id: doc.id, 
-                ...data,
-                createdAt: createdAtRaw?.toDate() ?? new Date()
-            } as Order);
-        });
-        return orders;
+        return querySnapshot.docs.map(docToOrder);
     } catch (e) {
         console.error("Error getting orders: ", e);
         throw new Error("Could not get orders");
@@ -319,24 +334,10 @@ export const getOrders = async (count?: number): Promise<Order[]> => {
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, "orders");
-        const q = query(ordersRef, where("userId", "==", userId));
+        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
 
         const querySnapshot = await getDocs(q);
-        const orders: Order[] = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const createdAtRaw = data.createdAt as Timestamp | null;
-            orders.push({ 
-                id: doc.id, 
-                ...data,
-                createdAt: createdAtRaw?.toDate() ?? new Date()
-            } as Order);
-        });
-        
-        // Sort orders by date descending, as we removed it from the query
-        orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-        return orders;
+        return querySnapshot.docs.map(docToOrder);
     } catch (e) {
         console.error("Error getting user orders: ", e);
         throw new Error("Could not get user orders");
@@ -407,10 +408,7 @@ export const getTopSellingProducts = async (count: number): Promise<Product[]> =
         const q = query(productsRef, where("__name__", "in", topProductIds));
         const querySnapshot = await getDocs(q);
         
-        const products: Product[] = [];
-        querySnapshot.forEach((doc) => {
-            products.push({ id: doc.id, ...doc.data() } as Product);
-        });
+        const products: Product[] = querySnapshot.docs.map(docToProduct);
 
         // Sort the fetched products according to their sales rank
         const sortedProducts = products.sort((a, b) => {
@@ -425,6 +423,15 @@ export const getTopSellingProducts = async (count: number): Promise<Product[]> =
         throw new Error("Could not get top selling products");
     }
 };
+
+const docToReview = (doc: any): Review => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+    } as Review;
+}
 
 export const addReview = async (review: ReviewInput): Promise<string> => {
   const user = auth.currentUser;
@@ -476,23 +483,9 @@ export const addReview = async (review: ReviewInput): Promise<string> => {
 export const getReviewsByProductId = async (productId: string): Promise<Review[]> => {
   try {
     const reviewsRef = collection(db, "reviews");
-    const q = query(reviewsRef, where("productId", "==", productId));
+    const q = query(reviewsRef, where("productId", "==", productId), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
-    const reviews: Review[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const createdAtRaw = data.createdAt as Timestamp | null;
-      reviews.push({ 
-          id: doc.id, 
-          ...data,
-          createdAt: createdAtRaw?.toDate() ?? new Date(),
-      } as Review);
-    });
-    
-    // Sort reviews by date descending locally
-    reviews.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-    return reviews;
+    return querySnapshot.docs.map(docToReview);
   } catch (e) {
     console.error("Error getting reviews: ", e);
     throw new Error("Could not get reviews for product");
@@ -507,13 +500,7 @@ export const getOrderByTransactionId = async (transactionId: string): Promise<Or
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       const doc = querySnapshot.docs[0];
-      const data = doc.data();
-      const createdAtRaw = data.createdAt as Timestamp | null;
-      return { 
-        id: doc.id, 
-        ...data,
-        createdAt: createdAtRaw?.toDate() ?? new Date(),
-      } as Order;
+      return docToOrder(doc);
     }
     return null;
   } catch (error) {

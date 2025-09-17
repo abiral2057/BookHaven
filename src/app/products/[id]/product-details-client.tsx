@@ -12,14 +12,16 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ProductReviews } from "@/components/product/product-reviews";
 import type { Product, Category, Review } from "@/lib/db";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 
 interface ProductDetailsClientProps {
   product: Product;
   category: Category | null;
   initialReviews: Review[];
+  breadcrumbItems: { label: string; href?: string }[];
 }
 
-export function ProductDetailsClient({ product, category, initialReviews }: ProductDetailsClientProps) {
+export function ProductDetailsClient({ product, category, initialReviews, breadcrumbItems }: ProductDetailsClientProps) {
   const [reviews, setReviews] = useState(initialReviews);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
@@ -36,8 +38,13 @@ export function ProductDetailsClient({ product, category, initialReviews }: Prod
   }, [reviews]);
 
   const handleNewReview = (review: Review) => {
-    setReviews(prevReviews => [review, ...prevReviews]);
+    setReviews(prevReviews => {
+      // Create a new review object with a string date
+      const newReviewWithStringDate = { ...review, createdAt: new Date().toISOString() };
+      return [newReviewWithStringDate, ...prevReviews];
+    });
   };
+  
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -85,6 +92,7 @@ export function ProductDetailsClient({ product, category, initialReviews }: Prod
 
   return (
     <>
+      <Breadcrumb items={breadcrumbItems} />
       <div className="grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
         {/* Product Image */}
         <div className="flex justify-center items-start">

@@ -133,7 +133,7 @@ export default function OrdersPage() {
                 {orders.map((order) => (
                   <TableRow key={order.id} className="grid grid-cols-3 p-4 gap-4 md:table-row md:p-0 md:grid-cols-none">
                     <TableCell className="p-0 col-span-2 space-y-1 md:table-cell md:w-[180px]">
-                      <p className="font-medium md:font-normal">{order.createdAt ? format(order.createdAt, 'PPpp') : 'N/A'}</p>
+                      <p className="font-medium md:font-normal">{order.createdAt ? format(new Date(order.createdAt), 'PPpp') : 'N/A'}</p>
                     </TableCell>
 
                     <TableCell className="p-0 col-span-3 space-y-1 md:table-cell">

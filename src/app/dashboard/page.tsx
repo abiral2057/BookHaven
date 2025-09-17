@@ -82,7 +82,7 @@ export default function CustomerDashboardPage() {
     // Order Details
     doc.setFontSize(12);
     doc.text(`Order ID: ${order.id}`, 14, 35);
-    doc.text(`Order Date: ${format(order.createdAt, 'PPpp')}`, 14, 42);
+    doc.text(`Order Date: ${format(new Date(order.createdAt), 'PPpp')}`, 14, 42);
     doc.text(`Customer: ${order.customer.name}`, 14, 49);
     doc.text(`Email: ${order.customer.email}`, 14, 56);
     
@@ -164,14 +164,14 @@ export default function CustomerDashboardPage() {
                     <TableCell className="p-0 col-span-2 font-medium sm:table-cell">
                       <div className="truncate font-semibold">{`#${order.id.substring(0, 6)}...`}</div>
                       <div className="sm:hidden text-xs text-muted-foreground mt-1">
-                        {order.createdAt ? format(order.createdAt, 'MMM d, yyyy') : 'N/A'}
+                        {order.createdAt ? format(new Date(order.createdAt), 'MMM d, yyyy') : 'N/A'}
                       </div>
                        <div className="sm:hidden mt-1">
                          <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                        </div>
                     </TableCell>
                      <TableCell className="hidden sm:table-cell">
-                      {order.createdAt ? format(order.createdAt, 'PP') : 'N/A'}
+                      {order.createdAt ? format(new Date(order.createdAt), 'PP') : 'N/A'}
                     </TableCell>
                     <TableCell className="p-0 col-span-2 sm:table-cell">
                         <span className="sm:hidden text-muted-foreground text-sm">Items: </span>

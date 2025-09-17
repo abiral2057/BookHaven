@@ -87,7 +87,7 @@ export function ProductReviews({
 }: {
   productId: string;
   initialReviews: Review[];
-  onNewReview: (review: Review) => void;
+  onNewReview: (review: Omit<Review, 'id'>) => void;
 }) {
   const { user, loading } = useAuth();
   const { toast } = useToast();
@@ -118,16 +118,15 @@ export function ProductReviews({
         rating: data.rating,
         comment: data.comment,
       };
-      const newReviewId = await addReview(reviewInput);
       
-      const newReview: Review = {
-        ...reviewInput,
-        id: newReviewId,
-        createdAt: new Date(),
-      };
+      await addReview(reviewInput);
       
-      onNewReview(newReview); // This updates the parent component state
-      setReviews(prev => [newReview, ...prev]); // This updates the local state
+      // Pass the new review data (without id) up to the parent
+      onNewReview(reviewInput);
+
+      // Locally update the reviews list for immediate feedback
+      setReviews(prev => [{...reviewInput, id: 'temp-id', createdAt: new Date().toISOString()}, ...prev]);
+      
       reset();
 
       toast({
@@ -207,8 +206,8 @@ export function ProductReviews({
         <div className="md:col-span-2">
            {reviews.length > 0 ? (
                <div className="divide-y">
-                   {reviews.map(review => (
-                       <ReviewCard key={review.id} review={review} />
+                   {reviews.map((review, index) => (
+                       <ReviewCard key={review.id || index} review={review} />
                    ))}
                </div>
            ) : (
