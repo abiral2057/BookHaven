@@ -39,7 +39,7 @@ const khaltiVerificationFlow = ai.defineFlow(
     }
 
     try {
-      const response = await fetch('https://khalti.com/api/v2/epayment/lookup/', {
+      const response = await fetch('https://dev.khalti.com/api/v2/epayment/lookup/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

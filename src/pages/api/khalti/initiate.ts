@@ -14,7 +14,7 @@ export default async function handler(
   }
 
   try {
-    const response = await fetch("https://khalti.com/api/v2/epayment/initiate/", {
+    const response = await fetch("https://dev.khalti.com/api/v2/epayment/initiate/", {
       method: 'POST',
       headers: {
         'Authorization': `Key ${khaltiSecretKey}`,
