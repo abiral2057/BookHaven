@@ -143,41 +143,6 @@ function ShopPageComponent() {
   const FilterSidebarContent = () => (
     <>
       <div className="space-y-8">
-        {/* Search Filter */}
-        <div>
-          <Label htmlFor="search" className="text-lg font-semibold">
-            Search
-          </Label>
-          <div className="relative mt-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="search"
-              placeholder="Title, author, or ISBN..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              onBlur={() => setTimeout(() => setSuggestions([]), 200)}
-              className="pl-10 pr-10"
-            />
-             <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsScannerOpen(true)}>
-                <Barcode className="h-5 w-5" />
-             </Button>
-          </div>
-          {suggestions.length > 0 && (
-            <Card className="absolute z-20 w-full mt-1 max-h-60 overflow-y-auto">
-              <ul>
-                {suggestions.map(product => (
-                  <li key={product.id}>
-                    <Link href={`/products/${product.id}`} className="block p-3 hover:bg-accent">
-                      <p className="font-semibold">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">{product.author}</p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-        </div>
-
         {/* Price Filter */}
         <div>
           <Label htmlFor="price" className="text-lg font-semibold">
@@ -198,8 +163,11 @@ function ShopPageComponent() {
           />
         </div>
 
-        {hasActiveFilters && (
-          <Button variant="ghost" onClick={clearFilters} className="w-full">
+        {(searchTerm.length > 0 || priceRange[0] < maxPrice) && (
+          <Button variant="ghost" onClick={() => {
+              setSearchTerm("");
+              setPriceRange([maxPrice]);
+          }} className="w-full">
             <X className="mr-2 h-4 w-4" />
             Clear Filters
           </Button>
@@ -215,7 +183,7 @@ function ShopPageComponent() {
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
            <Breadcrumb />
-          <div className="text-center mb-12 mt-8">
+          <div className="text-center mb-8 mt-8">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
               Our Collection
             </h1>
@@ -223,6 +191,44 @@ function ShopPageComponent() {
               Explore a world of stories, knowledge, and adventure.
             </p>
           </div>
+          
+           {/* Search Section */}
+            <div className="max-w-2xl mx-auto mb-12">
+                <div className="relative">
+                  <form onSubmit={(e) => e.preventDefault()} className="flex gap-2">
+                      <div className="relative flex-grow">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <Input 
+                              id="search"
+                              type="search" 
+                              placeholder="Search by title, author, or ISBN..."
+                              className="flex-grow text-base h-12 pl-10 pr-10"
+                              value={searchTerm}
+                              onChange={handleSearchChange}
+                              onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+                          />
+                          <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsScannerOpen(true)} type="button">
+                            <Barcode className="h-5 w-5" />
+                            <span className="sr-only">Scan Barcode</span>
+                          </Button>
+                      </div>
+                  </form>
+                  {suggestions.length > 0 && (
+                      <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
+                        <ul>
+                          {suggestions.map(product => (
+                            <li key={product.id}>
+                              <Link href={`/products/${product.id}`} className="block p-3 hover:bg-accent">
+                                <p className="font-semibold">{product.name}</p>
+                                <p className="text-sm text-muted-foreground">{product.author}</p>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </Card>
+                    )}
+                </div>
+            </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Filters Sidebar for Desktop */}
@@ -263,7 +269,7 @@ function ShopPageComponent() {
                           onClick={() => setSelectedCategory(null)}
                           className="rounded-full"
                         >
-                          All
+                          All Categories
                         </Button>
                         {categories.map((category) => (
                           <Button
