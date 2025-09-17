@@ -99,10 +99,12 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
           {isOpen && hasCameraPermission === true && (
             <div className="relative">
                {/* BarcodeReader is not visible, but provides the scanning logic */}
-               <BarcodeReader
-                  onError={handleError}
-                  onScan={handleScan}
-               />
+               <div style={{ display: 'none' }}>
+                    <BarcodeReader
+                      onError={handleError}
+                      onScan={handleScan}
+                    />
+                </div>
                <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted playsInline />
                <div className="absolute inset-0 border-4 border-primary/50 rounded-md pointer-events-none" />
                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-500/70 animate-pulse" />
