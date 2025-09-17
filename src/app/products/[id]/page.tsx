@@ -106,7 +106,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   }, [id, toast]);
 
   const handleNewReview = (review: Review) => {
-    setReviews([review, ...reviews]);
+    setReviews(prevReviews => [review, ...prevReviews]);
   };
 
 
@@ -226,7 +226,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
              <div className="mt-4 flex items-center gap-2">
                 <div className="flex items-center gap-0.5">
                    {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={cn("h-5 w-5", i < Math.floor(averageRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
+                        <Star key={i} className={cn("h-5 w-5", i < Math.round(averageRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
                     ))}
                 </div>
                 <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>
@@ -293,7 +293,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         </div>
         
         {/* Reviews Section */}
-        <ProductReviews productId={id} reviews={reviews} onNewReview={handleNewReview} />
+        <ProductReviews productId={id} initialReviews={reviews} onNewReview={handleNewReview} />
 
 
         {/* Related Products */}
@@ -311,5 +311,3 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     </>
   );
 }
-
-    

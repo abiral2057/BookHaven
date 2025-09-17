@@ -10,7 +10,7 @@ import { Footer } from "@/components/layout/footer";
 import { ProductCard } from "@/components/product/product-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Search, X, Filter } from "lucide-react";
+import { BookOpen, Search, X, Filter, Barcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { BarcodeScanner } from "@/components/product/barcode-scanner";
 
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -34,6 +35,7 @@ export default function ShopPage() {
   const [maxPrice, setMaxPrice] = useState(100);
   const [priceRange, setPriceRange] = useState([100]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,6 +69,11 @@ export default function ShopPage() {
     fetchData();
   }, [toast]);
 
+  const handleScanSuccess = (result: string) => {
+    setSearchTerm(result);
+    setIsScannerOpen(false);
+  };
+
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedCategory(null);
@@ -75,9 +82,11 @@ export default function ShopPage() {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
+      const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.author.toLowerCase().includes(searchTerm.toLowerCase());
+        product.name.toLowerCase().includes(searchTermLower) ||
+        product.author.toLowerCase().includes(searchTermLower) ||
+        (product.isbn && product.isbn.replace(/-/g, '').includes(searchTermLower));
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
       const matchesPrice = product.price <= priceRange[0];
@@ -99,12 +108,15 @@ export default function ShopPage() {
           <div className="relative mt-2">
             <Input
               id="search"
-              placeholder="Title or author..."
+              placeholder="Title, author, or ISBN..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 pr-10"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+             <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsScannerOpen(true)}>
+                <Barcode className="h-5 w-5" />
+             </Button>
           </div>
         </div>
 
@@ -139,6 +151,7 @@ export default function ShopPage() {
   );
 
   return (
+    <>
     <div className="bg-background min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
@@ -254,5 +267,11 @@ export default function ShopPage() {
       </main>
       <Footer />
     </div>
+    <BarcodeScanner 
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleScanSuccess}
+    />
+    </>
   );
 }

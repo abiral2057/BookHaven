@@ -488,5 +488,3 @@ export const getReviewsByProductId = async (productId: string): Promise<Review[]
     throw new Error("Could not get reviews for product");
   }
 };
-
-    

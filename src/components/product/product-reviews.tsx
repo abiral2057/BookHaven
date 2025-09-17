@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -82,15 +82,16 @@ function ReviewCard({ review }: { review: Review }) {
 
 export function ProductReviews({
   productId,
-  reviews,
+  initialReviews,
   onNewReview
 }: {
   productId: string;
-  reviews: Review[];
+  initialReviews: Review[];
   onNewReview: (review: Review) => void;
 }) {
   const { user, loading } = useAuth();
   const { toast } = useToast();
+  const [reviews, setReviews] = useState(initialReviews);
   const {
     control,
     handleSubmit,
@@ -100,6 +101,10 @@ export function ProductReviews({
     resolver: zodResolver(reviewSchema),
     defaultValues: { rating: 0, comment: "" },
   });
+
+  useEffect(() => {
+    setReviews(initialReviews);
+  }, [initialReviews]);
 
   const onSubmit = async (data: ReviewFormValues) => {
     if (!user) return;
@@ -121,7 +126,8 @@ export function ProductReviews({
         createdAt: new Date(),
       };
       
-      onNewReview(newReview);
+      onNewReview(newReview); // This updates the parent component state
+      setReviews(prev => [newReview, ...prev]); // This updates the local state
       reset();
 
       toast({
@@ -165,20 +171,7 @@ export function ProductReviews({
                 </div>
               ) : hasUserReviewed ? (
                 <div className="p-1">
-                   <div className="flex gap-4 py-4">
-                        <Avatar>
-                            <AvatarImage src={userReview.userAvatar} />
-                            <AvatarFallback>{getInitials(userReview.userName)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                            <div className="flex items-center gap-0.5">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className={cn("h-5 w-5", i < userReview.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
-                                ))}
-                            </div>
-                            <p className="mt-3 text-sm text-foreground/80">{userReview.comment}</p>
-                        </div>
-                    </div>
+                   {userReview && <ReviewCard review={userReview} />}
                 </div>
               ) : (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
