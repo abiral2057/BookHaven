@@ -167,7 +167,7 @@ export default function CustomerDashboardPage() {
                     </TableCell>
                      <TableCell className="hidden sm:table-cell">
                         <div className="flex items-center gap-2">
-                           {order.paymentMethod === 'COD' ? <Truck className="h-4 w-4 text-muted-foreground"/> : <CreditCard className="h-4 w-4 text-muted-foreground"/>}
+                           {order.paymentMethod === 'COD' ? <Truck className="h-5 w-5 text-muted-foreground"/> : <CreditCard className="h-5 w-5 text-muted-foreground"/>}
                            <span>{order.paymentMethod}</span>
                         </div>
                     </TableCell>

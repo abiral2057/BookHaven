@@ -21,7 +21,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import { Book, ArrowLeft, Trash2 } from 'lucide-react';
+import { Book, ArrowLeft, Trash2, Truck } from 'lucide-react';
 import { addOrder } from "@/lib/db";
 import { useEffect, useState, useId } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -355,22 +355,24 @@ export default function CheckoutPage() {
                     <CardContent>
                         <RadioGroup
                             defaultValue="cod"
+                            value={paymentMethod}
                             onValueChange={(val) => setValue('paymentMethod', val as 'cod' | 'esewa' | 'khalti')}
-                            className="space-y-2"
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
                             >
-                            <Label className="flex items-center space-x-2 rounded-md border p-4 cursor-pointer">
-                                <RadioGroupItem value="cod" id="cod" />
-                                <span className="flex-1">Cash on Delivery</span>
+                            <Label htmlFor="cod" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                <RadioGroupItem value="cod" id="cod" className="sr-only" />
+                                <Truck className="mb-3 h-8 w-8" />
+                                Cash on Delivery
                             </Label>
-                            <Label className="flex items-center space-x-2 rounded-md border p-4 cursor-pointer">
-                                <RadioGroupItem value="esewa" id="esewa" />
-                                <span className="flex-1">Pay with eSewa</span>
-                                 <Image src="https://blog.esewa.com.np/wp-content/uploads/2022/11/esewa-icon.png" width={40} height={40} alt="eSewa" />
+                            <Label htmlFor="esewa" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                <RadioGroupItem value="esewa" id="esewa" className="sr-only" />
+                                <Image src="https://blog.esewa.com.np/wp-content/uploads/2022/11/esewa-icon.png" width={48} height={48} alt="eSewa" className="mb-3" />
+                                Pay with eSewa
                             </Label>
-                             <Label className="flex items-center space-x-2 rounded-md border p-4 cursor-pointer">
-                                <RadioGroupItem value="khalti" id="khalti" />
-                                <span className="flex-1">Pay with Khalti</span>
-                                 <Image src="https://khalti.com/static/img/logo-khalti.svg" width={60} height={40} alt="Khalti" />
+                             <Label htmlFor="khalti" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer md:col-span-2">
+                                <RadioGroupItem value="khalti" id="khalti" className="sr-only" />
+                                 <Image src="https://khalti.com/static/img/logo-khalti.svg" width={80} height={40} alt="Khalti" className="mb-3"/>
+                                Pay with Khalti
                             </Label>
                         </RadioGroup>
                          {errors.paymentMethod && <p className="text-destructive text-sm mt-2">{errors.paymentMethod.message}</p>}

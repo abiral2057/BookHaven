@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, CreditCard, Truck } from 'lucide-react';
 import { checkDbConnection } from '@/lib/firebase';
+import Image from 'next/image';
 
 const statusVariants: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   Pending: 'default',
@@ -90,6 +91,19 @@ export default function OrdersPage() {
      return statusVariants[status] || 'default';
   };
 
+  const PaymentIcon = ({ method }: { method: Order['paymentMethod']}) => {
+    switch (method) {
+      case 'COD':
+        return <Truck className="h-5 w-5 text-muted-foreground" title="Cash on Delivery"/>;
+      case 'eSewa':
+        return <Image src="https://blog.esewa.com.np/wp-content/uploads/2022/11/esewa-icon.png" width={20} height={20} alt="eSewa" title="eSewa" />;
+      case 'Khalti':
+        return <Image src="https://khalti.com/static/img/logo-khalti.svg" width={40} height={20} alt="Khalti" title="Khalti" className="object-contain" />;
+      default:
+        return <CreditCard className="h-5 w-5 text-muted-foreground" title="Card" />;
+    }
+  }
+
   return (
     <>
       <h1 className="text-3xl font-bold text-foreground font-headline">Orders</h1>
@@ -137,7 +151,7 @@ export default function OrdersPage() {
                     
                     <TableCell className="hidden md:table-cell">
                         <div className="flex items-center gap-2">
-                           {order.paymentMethod === 'COD' ? <Truck className="h-4 w-4 text-muted-foreground"/> : <CreditCard className="h-4 w-4 text-muted-foreground"/>}
+                           <PaymentIcon method={order.paymentMethod} />
                            <span>{order.paymentMethod}</span>
                         </div>
                     </TableCell>
