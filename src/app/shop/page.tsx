@@ -110,6 +110,7 @@ function ShopPageComponent() {
   };
 
   const filteredProducts = useMemo(() => {
+    if (!products) return [];
     return products.filter((product) => {
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch =

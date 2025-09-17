@@ -112,11 +112,10 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
               
               {/* The BarcodeReader is not visible but uses the video feed */}
               {isOpen && hasCameraPermission && (
-                <div className="absolute top-0 left-0 w-full h-full">
+                <div style={{ display: 'none' }}>
                     <BarcodeReader
                       onError={handleError}
                       onScan={handleScan}
-                      // Some potential props to help, delay might prevent excessive firing
                       delay={300} 
                     />
                 </div>
