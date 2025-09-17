@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Camera } from "lucide-react";
+import { Camera, VideoOff } from "lucide-react";
 
 interface BarcodeScannerProps {
   isOpen: boolean;
@@ -24,40 +24,46 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
   const { toast } = useToast();
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
-
     const getCameraPermission = async () => {
-      // Only run if the dialog is open
-      if (!isOpen) {
-        setHasCameraPermission(null);
-        return;
-      };
-
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+      if (isOpen) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          streamRef.current = stream;
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings to use the scanner.',
+          });
         }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use the scanner.',
-        });
+      } else {
+        // Cleanup when dialog is closed
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+        setHasCameraPermission(null);
       }
     };
 
     getCameraPermission();
-    
-    // Cleanup function to stop the video stream when the component unmounts or dialog closes
+
+    // The main cleanup function for when the component unmounts
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
   }, [isOpen, toast]);
@@ -71,7 +77,7 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
   const handleError = (err: any) => {
      // This can fire for non-critical reasons, e.g. no barcode found in frame.
      // We can choose to log it silently or ignore it.
-     console.log("Barcode reader error:", err);
+     console.warn("Barcode reader error:", err);
   };
 
   return (
@@ -84,27 +90,27 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4">
-          {hasCameraPermission === null && (
-             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-                <Camera className="h-12 w-12 mb-2" />
+          {isOpen && hasCameraPermission === null && (
+             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground bg-muted/50 rounded-lg">
+                <Camera className="h-12 w-12 mb-2 animate-pulse" />
                 <p>Requesting camera permission...</p>
             </div>
           )}
-          {hasCameraPermission === true && (
+          {isOpen && hasCameraPermission === true && (
             <div className="relative">
                {/* BarcodeReader is not visible, but provides the scanning logic */}
                <BarcodeReader
                   onError={handleError}
                   onScan={handleScan}
-                  onFind={() => {}}
                />
-               <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />
+               <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted playsInline />
                <div className="absolute inset-0 border-4 border-primary/50 rounded-md pointer-events-none" />
                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-500/70 animate-pulse" />
             </div>
           )}
            {hasCameraPermission === false && (
             <Alert variant="destructive">
+                <VideoOff className="h-4 w-4" />
               <AlertTitle>Camera Access Required</AlertTitle>
               <AlertDescription>
                 Please allow camera access in your browser settings to use this feature.
