@@ -483,9 +483,15 @@ export const addReview = async (review: ReviewInput): Promise<string> => {
 export const getReviewsByProductId = async (productId: string): Promise<Review[]> => {
   try {
     const reviewsRef = collection(db, "reviews");
-    const q = query(reviewsRef, where("productId", "==", productId), orderBy("createdAt", "desc"));
+    // Query without ordering by 'createdAt' to avoid needing an index
+    const q = query(reviewsRef, where("productId", "==", productId));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docToReview);
+    const reviews = querySnapshot.docs.map(docToReview);
+    
+    // Sort the results in application code
+    reviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return reviews;
   } catch (e) {
     console.error("Error getting reviews: ", e);
     throw new Error("Could not get reviews for product");
