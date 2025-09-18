@@ -151,8 +151,9 @@ export default function ProductsPage() {
 
       const { fetchedProducts, fetchedCategories } = await fetchAllData();
       
-      if (fetchedProducts.length === 0 && !seeded.current && fetchedCategories.length > 0) {
-          seeded.current = true;
+      // We check for categories first, because products depend on them for seeding.
+      if (fetchedCategories.length > 0 && fetchedProducts.length === 0 && !seeded.current) {
+          seeded.current = true; // Mark as seeded to prevent re-seeding
           toast({
               title: "No Books Found",
               description: "Seeding your database with some sample books...",
@@ -163,18 +164,29 @@ export default function ProductsPage() {
               return acc;
           }, {} as Record<string, string>);
 
-          await Promise.all(defaultProducts.map(p => addProduct({
-              ...p,
-              category: categoryMap[p.category],
-              images: [`https://picsum.photos/seed/${p.name.replace(/\s/g, '-')}/400/600`],
-          })));
+          // Ensure all default categories exist before trying to seed products
+          const canSeed = defaultProducts.every(p => !!categoryMap[p.category]);
           
-          await fetchAllData();
+          if(canSeed) {
+            await Promise.all(defaultProducts.map(p => addProduct({
+                ...p,
+                category: categoryMap[p.category],
+                images: [`https://picsum.photos/seed/${p.name.replace(/\s/g, '-')}/400/600`],
+            })));
+            
+            await fetchAllData(); // Re-fetch data after seeding
 
-           toast({
-              title: "Sample Books Added!",
-              description: "Your database now has some sample books.",
-          });
+            toast({
+                title: "Sample Books Added!",
+                description: "Your database now has some sample books.",
+            });
+          } else {
+             toast({
+                variant: "destructive",
+                title: "Seeding Failed",
+                description: "Default categories for sample books are missing. Please ensure 'Fiction', 'Science Fiction', etc., exist.",
+            });
+          }
       }
       setIsLoading(false);
     };

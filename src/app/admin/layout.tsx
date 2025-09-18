@@ -22,7 +22,8 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
         }
     }, [user, isAdmin, loading, router]);
 
-    // While checking auth, show a loading state
+    // While checking auth, or if user is not an admin, show a loading state.
+    // This prevents a flash of admin content for non-admin users.
     if (loading || !isAdmin || !user) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">

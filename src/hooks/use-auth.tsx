@@ -32,7 +32,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: AuthError }>;
   signUpWithEmail: (credentials: SignUpWithEmailCredentials) => Promise<{ success: boolean; error?: AuthError }>;
   signInWithEmail: (credentials: SignInWithEmailCredentials) => Promise<{ success: boolean; error?: AuthError }>;
   logout: () => Promise<void>;
@@ -66,16 +66,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (): Promise<{ success: boolean, error?: AuthError }> => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       // The onAuthStateChanged listener will handle user state updates and routing.
+      return { success: true };
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
-        return;
+        return { success: false, error: error as AuthError };
       }
       console.error("Error signing in with Google: ", error);
+      return { success: false, error: error as AuthError };
     }
   };
 

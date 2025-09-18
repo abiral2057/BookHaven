@@ -46,10 +46,11 @@ export const checkDbConnection = async (): Promise<{ ready: boolean; error?: str
     }
   }
 
-  // Attempt a test write to verify security rules
-  if (auth.currentUser) {
+  // Attempt a test write to verify security rules, but only if user is logged in.
+  const currentUser = auth.currentUser;
+  if (currentUser) {
     try {
-      const testDocRef = doc(db, `_test_writes/${auth.currentUser.uid}`);
+      const testDocRef = doc(db, `_test_writes/${currentUser.uid}`);
       await setDoc(testDocRef, { timestamp: new Date() });
       await deleteDoc(testDocRef);
     } catch (e: any) {
@@ -59,9 +60,6 @@ export const checkDbConnection = async (): Promise<{ ready: boolean; error?: str
         }
         return { ready: false, error: "A database error occurred. Check console for details." };
     }
-  } else {
-    // Cannot check rules if user is not logged in, assume ready if network is.
-    return { ready: true };
   }
   
   return { ready: true };

@@ -90,8 +90,14 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    await signInWithGoogle();
-    // The useEffect hook will handle redirection on successful login
+    const { success } = await signInWithGoogle();
+    if (success) {
+      toast({
+        title: "Account Created",
+        description: "Welcome to BookHaven!",
+      });
+      // The useEffect hook will handle redirection
+    }
   };
   
   if (loading || user) {
