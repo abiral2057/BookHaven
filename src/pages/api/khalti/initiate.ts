@@ -1,3 +1,4 @@
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
@@ -14,7 +15,10 @@ export default async function handler(
   }
 
   try {
-    const response = await fetch("https://dev.khalti.com/api/v2/epayment/initiate/", {
+    // Khalti's test URL
+    const khaltiUrl = "https://a.khalti.com/api/v2/epayment/initiate/";
+    
+    const response = await fetch(khaltiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Key ${khaltiSecretKey}`,
@@ -28,6 +32,8 @@ export default async function handler(
     if (response.ok) {
         res.status(200).json(data);
     } else {
+        // Log the detailed error from Khalti for debugging
+        console.error('Khalti API Error:', data);
         res.status(response.status).json({ error: data.detail || 'Failed to initiate Khalti payment' });
     }
 

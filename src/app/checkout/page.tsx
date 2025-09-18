@@ -112,8 +112,6 @@ export default function CheckoutPage() {
     storeOrderInLocalStorage();
     localStorage.setItem('khalti_purchase_order_id', purchaseOrderId);
     
-    const khaltiUrl = new URL("https://khalti.com/api/v2/epayment/initiate/");
-
     const payload = {
         return_url: `${window.location.origin}/khalti/success/`,
         website_url: `${window.location.origin}`,
@@ -447,5 +445,3 @@ export default function CheckoutPage() {
     </>
   );
 }
-
-    

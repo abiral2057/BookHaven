@@ -21,7 +21,10 @@ export default async function handler(
   }
 
   try {
-    const response = await fetch('https://dev.khalti.com/api/v2/epayment/lookup/', {
+    // Khalti's test verification URL
+    const khaltiUrl = 'https://a.khalti.com/api/v2/epayment/lookup/';
+
+    const response = await fetch(khaltiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -33,6 +36,7 @@ export default async function handler(
     const data = await response.json();
 
     if (!response.ok) {
+        console.error('Khalti Verification API Error:', data);
         return res.status(response.status).json({ success: false, status: 'ERROR', error: data.detail || `Khalti API Error: ${response.statusText}` });
     }
     
