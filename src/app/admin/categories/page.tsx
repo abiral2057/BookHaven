@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -24,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addCategory, getCategories, Category } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, BookOpen } from "lucide-react";
+import { PlusCircle, BookOpen, Loader2 } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -219,7 +220,10 @@ export default function CategoriesPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-12">Loading categories...</div>
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="mr-2 h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground">Loading categories...</span>
+              </div>
             ) : categories.length > 0 ? (
               <Table>
                 <TableHeader>

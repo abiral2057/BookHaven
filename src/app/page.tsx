@@ -15,6 +15,29 @@ import { Footer } from "@/components/layout/footer";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+
+const ProductCarouselSkeleton = () => (
+  <Carousel className="w-full">
+    <CarouselContent>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <CarouselItem key={i} className="basis-2/5 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+          <div className="p-1">
+            <div className="bg-card/50 p-2 rounded-lg">
+                <Skeleton className="aspect-[2/3] w-full rounded-md" />
+                <div className="mt-2 space-y-2">
+                    <Skeleton className="h-4 w-4/5" />
+                    <Skeleton className="h-3 w-3/5" />
+                    <Skeleton className="h-5 w-1/2" />
+                </div>
+            </div>
+          </div>
+        </CarouselItem>
+      ))}
+    </CarouselContent>
+  </Carousel>
+);
 
 
 export default function Home() {
@@ -164,7 +187,7 @@ export default function Home() {
                     <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">Handpicked selections from our curators, just for you.</p>
                 </div>
                 {isLoading ? (
-                  <div className="text-center text-muted-foreground">Loading books...</div>
+                  <ProductCarouselSkeleton />
                 ) : featuredProducts.length > 0 ? (
                   <Carousel
                     opts={{
@@ -201,7 +224,7 @@ export default function Home() {
                       <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">See what other readers are loving right now.</p>
                   </div>
                   {isLoading ? (
-                    <div className="text-center text-muted-foreground">Loading top sellers...</div>
+                    <ProductCarouselSkeleton />
                   ) : (
                     <Carousel
                       opts={{
@@ -235,7 +258,7 @@ export default function Home() {
                       <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">Great stories at even better prices. Discover our second-hand collection.</p>
                   </div>
                   {isLoading ? (
-                    <div className="text-center text-muted-foreground">Loading used books...</div>
+                    <ProductCarouselSkeleton />
                   ) : (
                     <Carousel
                       opts={{

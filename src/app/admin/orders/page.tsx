@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, CreditCard, Truck } from 'lucide-react';
+import { MoreHorizontal, CreditCard, Truck, Loader2 } from 'lucide-react';
 import { checkDbConnection } from '@/lib/firebase';
 import Image from 'next/image';
 
@@ -115,7 +115,10 @@ export default function OrdersPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="text-center py-12 p-6">Loading orders...</div>
+            <div className="flex items-center justify-center py-12 p-6">
+              <Loader2 className="mr-2 h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="text-muted-foreground">Loading orders...</span>
+            </div>
           ) : orders.length > 0 ? (
             <Table>
               <TableHeader className="hidden md:table-header-group">

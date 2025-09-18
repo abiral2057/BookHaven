@@ -26,6 +26,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function ShopPageComponent() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -192,6 +193,21 @@ function ShopPageComponent() {
       </div>
     </>
   );
+  
+    const ProductGridSkeleton = () => (
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} className="bg-card/50 p-2 rounded-lg">
+             <Skeleton className="aspect-[2/3] w-full rounded-md" />
+              <div className="mt-2 space-y-2">
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-3 w-3/5" />
+                  <Skeleton className="h-5 w-1/2" />
+              </div>
+          </div>
+        ))}
+      </div>
+    );
 
   return (
     <>
@@ -304,18 +320,7 @@ function ShopPageComponent() {
 
 
               {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {Array.from({ length: 9 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="bg-card/50 p-4 rounded-lg animate-pulse"
-                    >
-                      <div className="bg-muted h-60 w-full rounded-md"></div>
-                      <div className="mt-4 h-6 w-3/4 bg-muted rounded"></div>
-                      <div className="mt-2 h-4 w-1/2 bg-muted rounded"></div>
-                    </div>
-                  ))}
-                </div>
+                <ProductGridSkeleton />
               ) : filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                   {filteredProducts.map((product) => (

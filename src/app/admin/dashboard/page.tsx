@@ -9,11 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { SalesChart } from "@/components/admin/sales-chart";
 import { subDays, startOfDay } from 'date-fns';
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function DashboardPage() {
@@ -65,7 +66,7 @@ export default function DashboardPage() {
 
                 ordersData.forEach(order => {
                     if (order.createdAt) {
-                        const orderDate = order.createdAt.toISOString().split('T')[0];
+                        const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
                          if (salesByDay.hasOwnProperty(orderDate)) {
                             salesByDay[orderDate] += order.total;
                         }
@@ -97,16 +98,16 @@ export default function DashboardPage() {
     }, [toast, isAdmin, authLoading]);
 
     const statCards = [
-        { title: "Total Revenue", value: `रु${stats.totalRevenue.toFixed(2)}`, icon: DollarSign },
-        { title: "Customers", value: `+${stats.totalCustomers}`, icon: Users },
-        { title: "Sales", value: `+${stats.totalSales}`, icon: CreditCard },
-        { title: "Active Now", value: "+573", change: "+201 since last hour", icon: Activity },
+        { title: "Total Revenue", value: `रु${stats.totalRevenue.toFixed(2)}`, icon: DollarSign, loadingValue: <Skeleton className="h-8 w-3/4" /> },
+        { title: "Customers", value: `+${stats.totalCustomers}`, icon: Users, loadingValue: <Skeleton className="h-8 w-1/2" /> },
+        { title: "Sales", value: `+${stats.totalSales}`, icon: CreditCard, loadingValue: <Skeleton className="h-8 w-1/2" /> },
+        { title: "Active Now", value: "+573", change: "+201 since last hour", icon: Activity, loadingValue: <Skeleton className="h-8 w-1/2" /> },
     ];
-
-    if (isLoading) {
+    
+    if (authLoading) {
         return (
             <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
             </div>
         )
     }
@@ -124,8 +125,14 @@ export default function DashboardPage() {
                             <stat.icon className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stat.value}</div>
-                            {stat.change && <p className="text-xs text-muted-foreground">{stat.change}</p>}
+                           {isLoading ? (
+                                stat.loadingValue
+                            ) : (
+                                <>
+                                    <div className="text-2xl font-bold">{stat.value}</div>
+                                    {stat.change && <p className="text-xs text-muted-foreground">{stat.change}</p>}
+                                </>
+                            )}
                         </CardContent>
                     </Card>
                 ))}
@@ -137,7 +144,11 @@ export default function DashboardPage() {
                         <CardDescription>A chart of sales revenue over the last 7 days.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2">
-                       <SalesChart data={stats.salesData} />
+                       {isLoading ? (
+                           <Skeleton className="h-[350px] w-full" />
+                       ) : (
+                           <SalesChart data={stats.salesData} />
+                       )}
                     </CardContent>
                 </Card>
                 <Card>
@@ -146,7 +157,19 @@ export default function DashboardPage() {
                         <CardDescription>Your most recently added products.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {topProducts.length > 0 ? (
+                        {isLoading ? (
+                             <div className="space-y-6">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <div key={i} className="flex justify-between items-center">
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-4 w-32" />
+                                            <Skeleton className="h-3 w-20" />
+                                        </div>
+                                        <Skeleton className="h-5 w-16" />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : topProducts.length > 0 ? (
                              <div className="space-y-4">
                                 {topProducts.map((product) => (
                                     <div key={product.id} className="flex justify-between items-center">

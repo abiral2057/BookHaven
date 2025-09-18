@@ -542,7 +542,10 @@ export default function ProductsPage() {
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="text-center py-12">Loading books...</div>
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="mr-2 h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground">Loading books...</span>
+              </div>
             ) : products.length > 0 ? (
               <AlertDialog>
                 <Table>

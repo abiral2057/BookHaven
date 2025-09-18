@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { checkDbConnection } from '@/lib/firebase';
+import { Loader2 } from 'lucide-react';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -68,7 +69,10 @@ export default function CustomersPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-12">Loading customers...</div>
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="mr-2 h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="text-muted-foreground">Loading customers...</span>
+            </div>
           ) : customers.length > 0 ? (
             <Table>
               <TableHeader>
