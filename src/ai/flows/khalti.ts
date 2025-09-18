@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -33,36 +34,25 @@ const khaltiVerificationFlow = ai.defineFlow(
     outputSchema: KhaltiVerificationOutputSchema,
   },
   async (input) => {
-    const secretKey = process.env.KHALTI_SECRET_KEY;
-    if (!secretKey) {
-      throw new Error('Khalti secret key is not configured.');
-    }
-
     try {
-      const response = await fetch('https://dev.khalti.com/api/v2/epayment/lookup/', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/khalti/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Key ${secretKey}`,
         },
         body: JSON.stringify({ pidx: input.pidx }),
       });
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        return { success: false, status: 'ERROR', error: `Khalti API Error: ${response.statusText} - ${errorBody}` };
-      }
+      const result = await response.json();
       
-      const data = await response.json();
-
-      if (data.status === 'Completed') {
-        return { success: true, status: data.status, data };
-      } else {
-        return { success: false, status: data.status, error: `Payment status is ${data.status}` };
+      if (!response.ok) {
+        return { success: false, status: 'ERROR', error: result.error || 'Verification API call failed' };
       }
+
+      return result;
 
     } catch (error: any) {
-      console.error('Khalti verification failed:', error);
+      console.error('Khalti verification flow failed:', error);
       return { success: false, status: 'EXCEPTION', error: error.message || 'An unknown error occurred during verification.' };
     }
   }

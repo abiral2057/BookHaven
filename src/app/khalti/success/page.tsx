@@ -9,7 +9,6 @@ import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCart } from '@/hooks/use-cart';
 import { addOrder, getOrderByTransactionId } from '@/lib/db';
-import { verifyKhaltiPayment } from '@/ai/flows/khalti';
 
 function SuccessPageContent() {
     const searchParams = useSearchParams();
@@ -39,10 +38,17 @@ function SuccessPageContent() {
                     router.replace('/dashboard');
                     return;
                 }
-                
-                const verificationResult = await verifyKhaltiPayment({ pidx });
 
-                if (!verificationResult.success || verificationResult.status !== 'Completed') {
+                // Call the new verification API route
+                const verificationResponse = await fetch('/api/khalti/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pidx }),
+                });
+
+                const verificationResult = await verificationResponse.json();
+
+                if (!verificationResponse.ok || !verificationResult.success || verificationResult.status !== 'Completed') {
                     setError(verificationResult.error || `Payment status is ${verificationResult.status}.`);
                     setStatus('failed');
                     localStorage.removeItem('pending_order_details');
