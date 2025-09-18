@@ -21,7 +21,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import { Book, ArrowLeft, Trash2, Truck, CreditCard, Loader2 } from 'lucide-react';
+import { Book, ArrowLeft, Trash2, Truck, CreditCard, Loader2, User } from 'lucide-react';
 import { addOrder } from "@/lib/db";
 import { useEffect, useState, useId } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -68,7 +68,7 @@ function OrderSummaryItem({ item, onRemove }: { item: CartItem, onRemove: (id: s
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, setLastOrderItemsAndClearCart, removeFromCart, clearCart, isMounted } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const transactionUUID = useId();
@@ -243,7 +243,7 @@ export default function CheckoutPage() {
       });
 
       setLastOrderItemsAndClearCart(cartItems);
-      router.push("/order-confirmation");
+      router.push("/dashboard");
 
     } catch (error) {
       console.error("Failed to place order:", error);
@@ -265,6 +265,16 @@ export default function CheckoutPage() {
       return;
     }
 
+     if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Please Log In",
+            description: "You need to be logged in to place an order.",
+        });
+        router.push('/login?redirect=/checkout');
+        return;
+    }
+
     if (data.paymentMethod === "esewa") {
       handleEsewaPayment();
     } else if (data.paymentMethod === "khalti") {
@@ -274,7 +284,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!isMounted) {
+  if (!isMounted || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -282,7 +292,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (cartItems.length === 0) {
+  if (cartItems.length === 0 && isMounted) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
             <h1 className="text-2xl font-bold mb-4">Your Cart is Empty</h1>
@@ -311,9 +321,27 @@ export default function CheckoutPage() {
         </div>
       </header>
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-center text-4xl font-bold font-headline mb-12">
-          Checkout
-        </h1>
+       {!user ? (
+            <Card className="max-w-xl mx-auto text-center">
+                 <CardHeader>
+                    <User className="mx-auto h-12 w-12 text-primary" />
+                    <CardTitle className="mt-4">You're Not Logged In</CardTitle>
+                    <CardDescription>
+                        Please log in or create an account to proceed with your order.
+                    </dCardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex justify-center gap-4">
+                        <Button asChild>
+                            <Link href="/login?redirect=/checkout">Login</Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/signup?redirect=/checkout">Sign Up</Link>
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             
@@ -374,12 +402,12 @@ export default function CheckoutPage() {
                             </Label>
                             <Label htmlFor="esewa" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
                                 <RadioGroupItem value="esewa" id="esewa" className="sr-only" />
-                                <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWbE59EdsqD-QZScX-wuy3G_6BtuDSIRzQSw&s" width={80} height={40} alt="eSewa" className="mb-3 object-contain"/>
+                                <Image src="https://blog.esewa.com.np/wp-content/uploads/2023/12/esewa-icon.png" width={80} height={40} alt="eSewa" className="mb-3 object-contain"/>
                                 Pay with eSewa
                             </Label>
                              <Label htmlFor="khalti" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer md:col-span-2">
                                 <RadioGroupItem value="khalti" id="khalti" className="sr-only" />
-                                 <Image src="https://cdn.nayathegana.com/services.khalti.com/static/images/khalti-ime-logo.png" width={80} height={40} alt="Khalti by IME" className="mb-3 object-contain"/>
+                                 <Image src="https://khalti.com/static/images/logo-khalti.svg" width={80} height={40} alt="Khalti" className="mb-3 object-contain"/>
                                 Pay with Khalti
                             </Label>
                         </RadioGroup>
@@ -414,9 +442,9 @@ export default function CheckoutPage() {
                 }
             </Button>
         </form>
+        )}
       </div>
     </>
   );
 }
 
-    

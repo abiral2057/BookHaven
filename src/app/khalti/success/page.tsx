@@ -30,63 +30,57 @@ function SuccessPageContent() {
             }
 
             try {
-                 // 1. Check if an order with this transaction_uuid already exists
                 const existingOrder = await getOrderByTransactionId(pidx);
                 if (existingOrder) {
                     setStatus('duplicate');
                     localStorage.removeItem('pending_order_details');
                     localStorage.removeItem('khalti_purchase_order_id');
                     setLastOrderItemsAndClearCart(existingOrder.items);
-                    router.replace('/order-confirmation');
+                    router.replace('/dashboard');
                     return;
                 }
                 
-                // 2. Verify payment on the server
                 const verificationResult = await verifyKhaltiPayment({ pidx });
 
                 if (!verificationResult.success || verificationResult.status !== 'Completed') {
                     setError(verificationResult.error || `Payment status is ${verificationResult.status}.`);
                     setStatus('failed');
+                    localStorage.removeItem('pending_order_details');
+                    localStorage.removeItem('khalti_purchase_order_id');
                     return;
                 }
 
-                // 3. Retrieve order details from localStorage
                 const storedOrderDetails = localStorage.getItem('pending_order_details');
                 const storedPurchaseOrderId = localStorage.getItem('khalti_purchase_order_id');
 
                 if (!storedOrderDetails || purchase_order_id !== storedPurchaseOrderId) {
                     setError("Could not verify transaction. Local data mismatch or missing.");
                     setStatus('failed');
-                    // This could be a stale order. We shouldn't create a DB entry.
                     return;
                 }
 
                 const orderPayload = JSON.parse(storedOrderDetails);
                 const khaltiData = verificationResult.data;
 
-                // 4. Verify amount (Khalti amount is in paisa)
                 if (khaltiData.total_amount / 100 !== orderPayload.total) {
                      setError(`Amount mismatch. Paid: ${khaltiData.total_amount / 100}, Expected: ${orderPayload.total}`);
                      setStatus('failed');
                      return;
                 }
+                
+                setStatus('verified');
 
-                // 5. If all checks pass, create the order in the database
                  await addOrder({
                     ...orderPayload,
                     paymentMethod: 'Khalti',
                     transactionId: pidx,
                 });
                 
-                // 6. Clean up localStorage and update cart state
                 localStorage.removeItem('pending_order_details');
                 localStorage.removeItem('khalti_purchase_order_id');
                 setLastOrderItemsAndClearCart(orderPayload.items);
 
-                setStatus('verified');
-
-                // Redirect to the main confirmation page
-                router.replace('/order-confirmation');
+                router.replace('/dashboard');
 
             } catch (e: any) {
                 console.error("Khalti success verification failed:", e);
@@ -107,7 +101,7 @@ function SuccessPageContent() {
                             <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400" />
                         </div>
                     )}
-                     {status === 'verified' && (
+                     {(status === 'verified' || status === 'duplicate') && (
                         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
                             <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
                         </div>
@@ -119,9 +113,9 @@ function SuccessPageContent() {
                     )}
                     <CardTitle className="mt-6 text-3xl font-bold font-headline">
                         {status === 'verifying' && 'Verifying Payment...'}
-                        {status === 'verified' && 'Payment Successful!'}
+                        {status === 'verified' && 'Processing Your Order...'}
                         {status === 'failed' && 'Payment Verification Failed'}
-                        {status === 'duplicate' && 'Processing Order...'}
+                        {status === 'duplicate' && 'Order Already Processed'}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -130,13 +124,13 @@ function SuccessPageContent() {
                             Please wait while we confirm your Khalti payment. Do not close this page.
                         </p>
                     )}
-                     {status === 'verified' && (
+                     {(status === 'verified' || status === 'duplicate') && (
                          <>
                             <p className="text-muted-foreground">
-                                Your payment has been successfully verified. Redirecting you now...
+                                Your payment was successful! We are now processing your order and redirecting you to your dashboard.
                             </p>
                             <Button asChild className="mt-8" size="lg">
-                                <Link href="/order-confirmation">Continue</Link>
+                                <Link href="/dashboard">Go to My Orders</Link>
                             </Button>
                          </>
                     )}
@@ -149,11 +143,6 @@ function SuccessPageContent() {
                                 <Link href="/checkout">Return to Checkout</Link>
                             </Button>
                          </>
-                    )}
-                     {status === 'duplicate' && (
-                         <p className="text-muted-foreground">
-                            This order is already being processed. Redirecting...
-                        </p>
                     )}
                 </CardContent>
             </Card>

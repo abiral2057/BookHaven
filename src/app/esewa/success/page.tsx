@@ -33,26 +33,21 @@ function SuccessPageContent() {
                 if (paymentStatus !== 'COMPLETE') {
                     setError(`Payment not completed. Status: ${paymentStatus}`);
                     setStatus('failed');
-                    // Clean up local storage on failure
                     localStorage.removeItem('pending_order_details');
                     localStorage.removeItem('esewa_transaction_uuid');
                     return;
                 }
                 
-                // 1. Check if an order with this transaction_uuid already exists
                 const existingOrder = await getOrderByTransactionId(transaction_uuid);
                 if (existingOrder) {
                     setStatus('duplicate');
-                     // Clean up local storage as order is already processed
                     localStorage.removeItem('pending_order_details');
                     localStorage.removeItem('esewa_transaction_uuid');
-                    // Set last order items for confirmation page, if not already set
                     setLastOrderItemsAndClearCart(existingOrder.items);
-                    router.replace('/order-confirmation');
+                    router.replace('/dashboard');
                     return;
                 }
 
-                // 2. Retrieve order details from localStorage
                 const storedOrderDetails = localStorage.getItem('pending_order_details');
                 const storedTransactionId = localStorage.getItem('esewa_transaction_uuid');
 
@@ -64,29 +59,25 @@ function SuccessPageContent() {
 
                 const orderPayload = JSON.parse(storedOrderDetails);
 
-                // 3. Verify amount
                 if (parseFloat(total_amount).toFixed(2) !== parseFloat(orderPayload.total).toFixed(2)) {
                     setError(`Amount mismatch. Paid: ${total_amount}, Expected: ${orderPayload.total}`);
                     setStatus('failed');
                     return;
                 }
 
-                // 4. If all checks pass, create the order in the database
+                setStatus('verified');
+                
                 await addOrder({
                     ...orderPayload,
                     paymentMethod: 'eSewa',
                     transactionId: transaction_uuid,
                 });
                 
-                // 5. Clean up localStorage and update cart state
                 localStorage.removeItem('pending_order_details');
                 localStorage.removeItem('esewa_transaction_uuid');
                 setLastOrderItemsAndClearCart(orderPayload.items);
 
-                setStatus('verified');
-
-                // Redirect to the main confirmation page
-                router.replace('/order-confirmation');
+                router.replace('/dashboard');
 
             } catch (e: any) {
                 console.error("eSewa success verification failed:", e);
@@ -107,7 +98,7 @@ function SuccessPageContent() {
                             <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400" />
                         </div>
                     )}
-                     {status === 'verified' && (
+                     {(status === 'verified' || status === 'duplicate') && (
                         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
                             <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
                         </div>
@@ -119,9 +110,9 @@ function SuccessPageContent() {
                     )}
                     <CardTitle className="mt-6 text-3xl font-bold font-headline">
                         {status === 'verifying' && 'Verifying Payment...'}
-                        {status === 'verified' && 'Payment Successful!'}
+                        {status === 'verified' && 'Processing Your Order...'}
                         {status === 'failed' && 'Payment Verification Failed'}
-                        {status === 'duplicate' && 'Processing Order...'}
+                        {status === 'duplicate' && 'Order Already Processed'}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -130,13 +121,13 @@ function SuccessPageContent() {
                             Please wait while we confirm your eSewa payment. Do not close this page.
                         </p>
                     )}
-                     {status === 'verified' && (
+                     {(status === 'verified' || status === 'duplicate') && (
                          <>
                             <p className="text-muted-foreground">
-                                Your payment has been successfully verified. Redirecting you now...
+                                Your payment was successful! We are now processing your order and redirecting you to your dashboard.
                             </p>
                             <Button asChild className="mt-8" size="lg">
-                                <Link href="/order-confirmation">Continue</Link>
+                                <Link href="/dashboard">Go to My Orders</Link>
                             </Button>
                          </>
                     )}
@@ -149,11 +140,6 @@ function SuccessPageContent() {
                                 <Link href="/checkout">Return to Checkout</Link>
                             </Button>
                          </>
-                    )}
-                     {status === 'duplicate' && (
-                         <p className="text-muted-foreground">
-                            This order is already being processed. Redirecting...
-                        </p>
                     )}
                 </CardContent>
             </Card>
