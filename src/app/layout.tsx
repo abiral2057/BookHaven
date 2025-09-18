@@ -8,6 +8,8 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from 'next-themes';
 import { WishlistProvider } from '@/hooks/use-wishlist';
 import { BottomNavbar } from '@/components/layout/bottom-navbar';
+import { ProgressBar } from '@/components/layout/progress-bar';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'BookHaven',
@@ -39,6 +41,9 @@ export default function RootLayout({
             <AuthProvider>
               <CartProvider>
                 <WishlistProvider>
+                  <Suspense>
+                    <ProgressBar />
+                  </Suspense>
                   {children}
                   <BottomNavbar />
                   <Toaster />
